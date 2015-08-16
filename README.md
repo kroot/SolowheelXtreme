@@ -29,8 +29,8 @@ Prerequisites
 Screenshots
 -------------
 
-<img src="screenshots/Scan.png" alt="Screenshot"/> 
-<img src="screenshots/Gauges.png" alt="Screenshot"/> 
+<img src="screenshots/Scan.png" height="200" alt="Screenshot"/> 
+<img src="screenshots/Gauge.png" height="200" alt="Screenshot"/> 
 
 Getting Started
 ---------------
