@@ -33,9 +33,9 @@ Prerequisites
 Screenshots
 -------------
 
-<img src="screenshots/Scan.png" height="400" alt="Screenshot"/> 
-<img src="screenshots/GaugeFull.png" height="400" alt="Screenshot"/> 
-<img src="screenshots/Gauge.png" height="400" alt="Screenshot"/> 
+<img src="https://github.com/kroot/SolowheelXtreme/screenshots/Scan.png" height="300" alt="Screenshot"/> 
+<img src="https://github.com/kroot/SolowheelXtreme/screenshots/GaugeFull.png" height="300" alt="Screenshot"/> 
+<img src="https://github.com/kroot/SolowheelXtreme/screenshots/Gauge.png" height="300" alt="Screenshot"/> 
 
 Getting Started
 ---------------
