@@ -10,8 +10,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ec4e96c4-6953-4bb1-997a-e6d6d7047900" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/screenshots/GaugeFull.png" />
       <change type="DELETED" beforePath="C:\Temp\SolowheelXtreme\.idea\workspace.xml" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/screenshots/Scan.png" afterPath="$PROJECT_DIR$/screenshots/Scan.png" />
     </list>
     <list id="3b846e87-f9d1-4692-a368-91f3f887fbf7" name="Rejected commit: Default" comment="Initial checkin" />
     <ignored path="SolowheelXtreme.iws" />
@@ -46,21 +46,6 @@
             <state vertical-scroll-proportion="0.0">
               <caret line="2" column="0" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
               <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="workspace.xml" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-34.86842">
-              <caret line="1274" column="12" selection-start-line="1274" selection-start-column="12" selection-end-line="1274" selection-end-column="12" />
-              <folding>
-                <marker date="1439757119323" expanded="true" signature="145225:145242" placeholder="..." />
-                <marker date="1439757119323" expanded="true" signature="145225:145260" placeholder="..." />
-                <marker date="1439757119323" expanded="true" signature="145225:145273" placeholder="..." />
-                <marker date="1439757119323" expanded="true" signature="145225:145288" placeholder="..." />
-              </folding>
             </state>
           </provider>
         </entry>
@@ -1894,7 +1879,19 @@
       <option name="project" value="LOCAL" />
       <updated>1439755978493</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="tweaks">
+      <created>1439757188266</created>
+      <option name="number" value="00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1439757188266</updated>
+    </task>
+    <task id="LOCAL-00014" summary="readme update">
+      <created>1439758384413</created>
+      <option name="number" value="00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1439758384413</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -1949,7 +1946,9 @@
     <MESSAGE value="Readme updates" />
     <MESSAGE value="misc tweaks" />
     <MESSAGE value="removed .idea folder from git" />
-    <option name="LAST_COMMIT_MESSAGE" value="removed .idea folder from git" />
+    <MESSAGE value="tweaks" />
+    <MESSAGE value="readme update" />
+    <option name="LAST_COMMIT_MESSAGE" value="readme update" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -2303,19 +2302,6 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="2" column="0" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-34.86842">
-          <caret line="1274" column="12" selection-start-line="1274" selection-start-column="12" selection-end-line="1274" selection-end-column="12" />
-          <folding>
-            <marker date="1439757119323" expanded="true" signature="145225:145242" placeholder="..." />
-            <marker date="1439757119323" expanded="true" signature="145225:145260" placeholder="..." />
-            <marker date="1439757119323" expanded="true" signature="145225:145273" placeholder="..." />
-            <marker date="1439757119323" expanded="true" signature="145225:145288" placeholder="..." />
-          </folding>
         </state>
       </provider>
     </entry>
