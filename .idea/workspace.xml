@@ -10,8 +10,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ec4e96c4-6953-4bb1-997a-e6d6d7047900" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/screenshots/Gauge.png" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/screenshots/Scan.png" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <list id="3b846e87-f9d1-4692-a368-91f3f887fbf7" name="Rejected commit: Default" comment="Initial checkin" />
@@ -54,9 +53,11 @@
       <file leaf-file-name="workspace.xml" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-23.973684">
-              <caret line="1253" column="27" selection-start-line="1253" selection-start-column="27" selection-end-line="1253" selection-end-column="27" />
-              <folding />
+            <state vertical-scroll-proportion="-24.578947">
+              <caret line="1257" column="12" selection-start-line="1257" selection-start-column="12" selection-end-line="1257" selection-end-column="12" />
+              <folding>
+                <marker date="1439750573725" expanded="true" signature="142438:142526" placeholder="..." />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -1846,7 +1847,19 @@
       <option name="project" value="LOCAL" />
       <updated>1439750133866</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Readme updates">
+      <created>1439750349750</created>
+      <option name="number" value="00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1439750349750</updated>
+    </task>
+    <task id="LOCAL-00009" summary="Readme updates">
+      <created>1439750481929</created>
+      <option name="number" value="00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1439750481929</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -2260,9 +2273,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-23.973684">
-          <caret line="1253" column="27" selection-start-line="1253" selection-start-column="27" selection-end-line="1253" selection-end-column="27" />
-          <folding />
+        <state vertical-scroll-proportion="-24.578947">
+          <caret line="1257" column="12" selection-start-line="1257" selection-start-column="12" selection-end-line="1257" selection-end-column="12" />
+          <folding>
+            <marker date="1439750573725" expanded="true" signature="142438:142526" placeholder="..." />
+          </folding>
         </state>
       </provider>
     </entry>
