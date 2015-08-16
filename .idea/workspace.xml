@@ -10,10 +10,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ec4e96c4-6953-4bb1-997a-e6d6d7047900" name="Default" comment="">
-      <change type="DELETED" beforePath="C:\Temp\SolowheelXtreme\screenshots\1-main.png" afterPath="" />
-      <change type="DELETED" beforePath="C:\Temp\SolowheelXtreme\screenshots\2-detail.png" afterPath="" />
-      <change type="DELETED" beforePath="C:\Temp\SolowheelXtreme\screenshots\icon-web.png" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/screenshots/Gauge.png" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/screenshots/Scan.png" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <list id="3b846e87-f9d1-4692-a368-91f3f887fbf7" name="Rejected commit: Default" comment="Initial checkin" />
@@ -56,11 +54,9 @@
       <file leaf-file-name="workspace.xml" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-27.0">
-              <caret line="1258" column="27" selection-start-line="1258" selection-start-column="27" selection-end-line="1258" selection-end-column="27" />
-              <folding>
-                <marker date="1439749944532" expanded="true" signature="141908:141996" placeholder="..." />
-              </folding>
+            <state vertical-scroll-proportion="-23.973684">
+              <caret line="1253" column="27" selection-start-line="1253" selection-start-column="27" selection-end-line="1253" selection-end-column="27" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -1844,7 +1840,13 @@
       <option name="project" value="LOCAL" />
       <updated>1439749829223</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Readme updates">
+      <created>1439750133866</created>
+      <option name="number" value="00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1439750133866</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -1896,7 +1898,8 @@
     <MESSAGE value="Initial checkin" />
     <MESSAGE value="project file tweaks" />
     <MESSAGE value="Quick readme update" />
-    <option name="LAST_COMMIT_MESSAGE" value="Quick readme update" />
+    <MESSAGE value="Readme updates" />
+    <option name="LAST_COMMIT_MESSAGE" value="Readme updates" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -2257,11 +2260,9 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-27.0">
-          <caret line="1258" column="27" selection-start-line="1258" selection-start-column="27" selection-end-line="1258" selection-end-column="27" />
-          <folding>
-            <marker date="1439749944532" expanded="true" signature="141908:141996" placeholder="..." />
-          </folding>
+        <state vertical-scroll-proportion="-23.973684">
+          <caret line="1253" column="27" selection-start-line="1253" selection-start-column="27" selection-end-line="1253" selection-end-column="27" />
+          <folding />
         </state>
       </provider>
     </entry>
