@@ -1,9 +1,8 @@
 
-Android BluetoothLeGatt Sample
-===================================
+Solowheel Xtreme App for Android
+================================
 
-This sample demonstrates how to use the Bluetooth LE Generic Attribute Profile (GATT)
-to transmit arbitrary data between devices.
+This application displays real-time information from the Solowheel Xtreme by Inventist over Bluetooth LE.
 
 Introduction
 ------------
@@ -20,12 +19,12 @@ The Activities communicate with the Service, which in turn interacts with the [B
 [1]:http://developer.android.com/reference/android/app/Service.html
 [2]:https://developer.android.com/reference/android/bluetooth/BluetoothGatt.html
 
-Pre-requisites
---------------
+Prerequisites
+-------------
 
-- Android SDK v22
-- Android Build Tools v22.0.1
-- Android Support Repository
+- Solowheel Xtreme (The Solowheel Classic does not have Bluetooth LE hardware)
+- Android device that supports Bluetooth LE
+- Android SDK version 18 or greater
 
 Screenshots
 -------------
