@@ -7,17 +7,21 @@ This application displays real-time information from the Solowheel Xtreme by Inv
 Introduction
 ------------
 
-This sample shows a list of available Bluetooth LE devices and provides
-an interface to connect, display data and display GATT services and
-characteristics supported by the devices.
+The wireless support used to connect to the Xtreme is based on the "Bluetooth LeGatt" sample code provided with the Android SDK.
+The sample bluetooth code was modified to only look for Solowheel Xtremes.
 
-It creates a [Service][1] for managing connection and data communication with a GATT server
-hosted on a given Bluetooth LE device.
-
+Bluetooth LeGatt creates a [Service][1] for managing connection and data communication with a GATT server hosted on a given Bluetooth LE device.  
 The Activities communicate with the Service, which in turn interacts with the [Bluetooth LE API][2].
 
 [1]:http://developer.android.com/reference/android/app/Service.html
 [2]:https://developer.android.com/reference/android/bluetooth/BluetoothGatt.html
+
+The Xtreme uses the Texas Instruments CC254X Bluetooth LE chipset.
+[TI Bluetooth low energy software stack and tools][3]
+[3]:http://www.ti.com/tool/ble-stack
+
+[Bluetooth LE on Wikipedia][4]
+[4]:https://en.wikipedia.org/wiki/Bluetooth_low_energy
 
 Prerequisites
 -------------
@@ -30,6 +34,7 @@ Screenshots
 -------------
 
 <img src="screenshots/Scan.png" height="600" alt="Screenshot"/> 
+<img src="screenshots/GaugeFull.png" height="600" alt="Screenshot"/> 
 <img src="screenshots/Gauge.png" height="600" alt="Screenshot"/> 
 
 Getting Started
@@ -41,11 +46,7 @@ This sample uses the Gradle build system. To build this project, use the
 Support
 -------
 
-- Google+ Community: https://plus.google.com/communities/105153134372062985968
-- Stack Overflow: http://stackoverflow.com/questions/tagged/android
-
-If you've found an error in this sample, please file an issue:
-https://github.com/googlesamples/android-BluetoothLeGatt
+- Google Group: https://groups.google.com/forum/#!forum/solowheel-xtreme-app
 
 Patches are encouraged, and may be submitted by forking this project and
 submitting a pull request through GitHub. Please see CONTRIBUTING.md for more details.
