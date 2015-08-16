@@ -10,20 +10,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ec4e96c4-6953-4bb1-997a-e6d6d7047900" name="Default" comment="">
-      <change type="DELETED" beforePath="C:\Temp\SolowheelXtreme\.idea\.name" afterPath="" />
-      <change type="DELETED" beforePath="C:\Temp\SolowheelXtreme\.idea\compiler.xml" afterPath="" />
-      <change type="DELETED" beforePath="C:\Temp\SolowheelXtreme\.idea\copyright\profiles_settings.xml" afterPath="" />
-      <change type="DELETED" beforePath="C:\Temp\SolowheelXtreme\.idea\encodings.xml" afterPath="" />
-      <change type="DELETED" beforePath="C:\Temp\SolowheelXtreme\.idea\gradle.xml" afterPath="" />
-      <change type="DELETED" beforePath="C:\Temp\SolowheelXtreme\.idea\libraries\cardview_v7_21_0_2.xml" afterPath="" />
-      <change type="DELETED" beforePath="C:\Temp\SolowheelXtreme\.idea\libraries\support_annotations_21_0_2.xml" afterPath="" />
-      <change type="DELETED" beforePath="C:\Temp\SolowheelXtreme\.idea\libraries\support_v13_21_0_2.xml" afterPath="" />
-      <change type="DELETED" beforePath="C:\Temp\SolowheelXtreme\.idea\libraries\support_v4_21_0_2.xml" afterPath="" />
-      <change type="DELETED" beforePath="C:\Temp\SolowheelXtreme\.idea\misc.xml" afterPath="" />
-      <change type="DELETED" beforePath="C:\Temp\SolowheelXtreme\.idea\modules.xml" afterPath="" />
-      <change type="DELETED" beforePath="C:\Temp\SolowheelXtreme\.idea\runConfigurations.xml" afterPath="" />
-      <change type="DELETED" beforePath="C:\Temp\SolowheelXtreme\.idea\vcs.xml" afterPath="" />
       <change type="DELETED" beforePath="C:\Temp\SolowheelXtreme\.idea\workspace.xml" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/screenshots/Scan.png" afterPath="$PROJECT_DIR$/screenshots/Scan.png" />
     </list>
     <list id="3b846e87-f9d1-4692-a368-91f3f887fbf7" name="Rejected commit: Default" comment="Initial checkin" />
     <ignored path="SolowheelXtreme.iws" />
@@ -65,13 +53,13 @@
       <file leaf-file-name="workspace.xml" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-33.05263">
-              <caret line="1271" column="12" selection-start-line="1271" selection-start-column="12" selection-end-line="1271" selection-end-column="12" />
+            <state vertical-scroll-proportion="-34.86842">
+              <caret line="1274" column="12" selection-start-line="1274" selection-start-column="12" selection-end-line="1274" selection-end-column="12" />
               <folding>
-                <marker date="1439755639318" expanded="true" signature="144635:144652" placeholder="..." />
-                <marker date="1439755639318" expanded="true" signature="144635:144670" placeholder="..." />
-                <marker date="1439755639318" expanded="true" signature="144635:144683" placeholder="..." />
-                <marker date="1439755639318" expanded="true" signature="144635:144698" placeholder="..." />
+                <marker date="1439757119323" expanded="true" signature="145225:145242" placeholder="..." />
+                <marker date="1439757119323" expanded="true" signature="145225:145260" placeholder="..." />
+                <marker date="1439757119323" expanded="true" signature="145225:145273" placeholder="..." />
+                <marker date="1439757119323" expanded="true" signature="145225:145288" placeholder="..." />
               </folding>
             </state>
           </provider>
@@ -110,8 +98,8 @@
       <file leaf-file-name="DeviceScanActivity.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Application/src/main/java/com/inventist/xtreme/DeviceScanActivity.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.41245136">
-              <caret line="293" column="98" selection-start-line="293" selection-start-column="98" selection-end-line="293" selection-end-column="98" />
+            <state vertical-scroll-proportion="0.69131">
+              <caret line="336" column="25" selection-start-line="336" selection-start-column="25" selection-end-line="336" selection-end-column="25" />
               <folding>
                 <element signature="e#0#12085#0" expanded="true" />
                 <element signature="imports" expanded="true" />
@@ -1900,7 +1888,13 @@
       <option name="project" value="LOCAL" />
       <updated>1439755627416</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="removed .idea folder from git">
+      <created>1439755978493</created>
+      <option name="number" value="00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1439755978493</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -1911,14 +1905,14 @@
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32890365" sideWeight="0.49520382" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Build Variants" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24979822" sideWeight="0.5050378" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32890365" sideWeight="0.5127898" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32890365" sideWeight="0.5143885" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32890365" sideWeight="0.48721024" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32890365" sideWeight="0.49840128" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32890365" sideWeight="0.4856115" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32890365" sideWeight="0.49680257" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32890365" sideWeight="0.49840128" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Captures" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Android" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.29905063" sideWeight="0.49680257" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Android" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.29900333" sideWeight="0.49520382" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Gradle Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24740207" sideWeight="0.49496222" order="0" side_tool="false" content_ui="combo" />
@@ -1954,7 +1948,8 @@
     <MESSAGE value="Quick readme update" />
     <MESSAGE value="Readme updates" />
     <MESSAGE value="misc tweaks" />
-    <option name="LAST_COMMIT_MESSAGE" value="misc tweaks" />
+    <MESSAGE value="removed .idea folder from git" />
+    <option name="LAST_COMMIT_MESSAGE" value="removed .idea folder from git" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -2313,13 +2308,13 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/.idea/workspace.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-33.05263">
-          <caret line="1271" column="12" selection-start-line="1271" selection-start-column="12" selection-end-line="1271" selection-end-column="12" />
+        <state vertical-scroll-proportion="-34.86842">
+          <caret line="1274" column="12" selection-start-line="1274" selection-start-column="12" selection-end-line="1274" selection-end-column="12" />
           <folding>
-            <marker date="1439755639318" expanded="true" signature="144635:144652" placeholder="..." />
-            <marker date="1439755639318" expanded="true" signature="144635:144670" placeholder="..." />
-            <marker date="1439755639318" expanded="true" signature="144635:144683" placeholder="..." />
-            <marker date="1439755639318" expanded="true" signature="144635:144698" placeholder="..." />
+            <marker date="1439757119323" expanded="true" signature="145225:145242" placeholder="..." />
+            <marker date="1439757119323" expanded="true" signature="145225:145260" placeholder="..." />
+            <marker date="1439757119323" expanded="true" signature="145225:145273" placeholder="..." />
+            <marker date="1439757119323" expanded="true" signature="145225:145288" placeholder="..." />
           </folding>
         </state>
       </provider>
@@ -2350,8 +2345,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Application/src/main/java/com/inventist/xtreme/DeviceScanActivity.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.41245136">
-          <caret line="293" column="98" selection-start-line="293" selection-start-column="98" selection-end-line="293" selection-end-column="98" />
+        <state vertical-scroll-proportion="0.69131">
+          <caret line="336" column="25" selection-start-line="336" selection-start-column="25" selection-end-line="336" selection-end-column="25" />
           <folding>
             <element signature="e#0#12085#0" expanded="true" />
             <element signature="imports" expanded="true" />
