@@ -291,7 +291,7 @@ public class DeviceScanActivity extends ListActivity {
             final String deviceName = device.getName();
             if (deviceName != null && deviceName.length() > 0)
                 if (deviceName.equals("EXTREME"))
-                    viewHolder.deviceName.setText("XTREME");
+                    viewHolder.deviceName.setText("XTREME");  // workaround for firmware broadcast
                 else
                     viewHolder.deviceName.setText(deviceName);
             else
