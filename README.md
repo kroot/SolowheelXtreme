@@ -33,14 +33,14 @@ Prerequisites
 Screenshots
 -------------
 
-<img src="screenshots/Scan.png" height="600" alt="Screenshot"/> 
-<img src="screenshots/GaugeFull.png" height="600" alt="Screenshot"/> 
-<img src="screenshots/Gauge.png" height="600" alt="Screenshot"/> 
+<img src="screenshots/Scan.png" height="500" alt="Screenshot"/> 
+<img src="screenshots/GaugeFull.png" height="500" alt="Screenshot"/> 
+<img src="screenshots/Gauge.png" height="500" alt="Screenshot"/> 
 
 Getting Started
 ---------------
 
-This sample uses the Gradle build system. To build this project, use the
+This Android app uses the Gradle build system. To build this project, use the
 "gradlew build" command or use "Import Project" in Android Studio.
 
 Support
