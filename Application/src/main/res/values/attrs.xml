@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+	<declare-styleable name="BatteryGauge">
+		<attr name="title_charge" format="string"/>
+		<attr name="titleFontSize_charge" format="integer"/>
+		<attr name="titleColor_charge" format="color" />
+
+		<attr name="value_charge_percent" format="integer"/>
+		<attr name="valueFontSize_charge" format="integer"/>
+		<attr name="valueDigits_charge" format="integer"/>
+		<attr name="valueColor_charge" format="color" />
+	</declare-styleable>
+</resources>

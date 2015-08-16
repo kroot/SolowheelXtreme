@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<resources>
+    <string name="app_name">Solowheel Xtreme</string>
+    <string name="intro_message">
+        <![CDATA[
+        
+            This application connects over Bluetooth LE to a Solowheel Xtreme to display speed and charge.
+
+        ]]>
+    </string>
+</resources>
