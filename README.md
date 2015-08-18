@@ -4,31 +4,31 @@ Solowheel Xtreme App for Android
 
 This application displays real-time information from the Solowheel Xtreme by Inventist over Bluetooth LE.
 
+**Please use the Google Play store to install the app.  GitHub (and the zip file you can download here) only contains the source code used to build the app.**
+
 Introduction
 ------------
 
 The wireless support used to connect to the Xtreme is based on the "Bluetooth LeGatt" sample code provided with the Android SDK.
-The sample bluetooth code was modified to only look for Solowheel Xtremes.
+The sample bluetooth code was modified to search only for Solowheel Xtremes.
 
-Bluetooth LeGatt creates a [Service][1] for managing connection and data communication with a GATT server hosted on a given Bluetooth LE device.  
+The Bluetooth LeGatt code creates a [Service][1] for managing connection and data communication with a GATT server hosted on a given Bluetooth LE device.  
 The Activities communicate with the Service, which in turn interacts with the [Bluetooth LE API][2].
 
 [1]:http://developer.android.com/reference/android/app/Service.html
 [2]:https://developer.android.com/reference/android/bluetooth/BluetoothGatt.html
 
-The Xtreme uses the Texas Instruments CC254X Bluetooth LE chipset.
-[TI Bluetooth low energy software stack and tools][3]
-[3]:http://www.ti.com/tool/ble-stack
+The Xtreme uses the Texas Instruments **CC254X** Bluetooth LE chipset.  
+[TI Bluetooth low energy software stack and tools](http://www.ti.com/tool/ble-stack)
 
-[Bluetooth LE on Wikipedia][4]
-[4]:https://en.wikipedia.org/wiki/Bluetooth_low_energy
+[Bluetooth LE on Wikipedia](https://en.wikipedia.org/wiki/Bluetooth_low_energy)
 
 Prerequisites
 -------------
 
-- Solowheel Xtreme (The Solowheel Classic does not have Bluetooth LE hardware)
+- **Solowheel Xtreme** *(The Solowheel Classic does not have Bluetooth LE hardware)*
 - Android device that supports Bluetooth LE
-- Android SDK version 18 or greater
+- Android Studio and SDKs
 
 Screenshots
 -------------
