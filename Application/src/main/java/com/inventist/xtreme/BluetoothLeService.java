@@ -30,6 +30,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.util.List;
@@ -128,54 +129,95 @@ public class BluetoothLeService extends Service {
                                  final BluetoothGattCharacteristic characteristic) {
         final Intent intent = new Intent(action);
 
+
         final byte[] data = characteristic.getValue();
+
         if ((data != null) && (data.length > 0) && (data.length == 20)){
+            Log.d(TAG, "Data=" + data);
 
             String s = new String(data);
             String[] swValues = s.split(",");
-            if ((swValues != null) && (swValues.length == 3))
+            if (swValues != null)
             {
-                String speed =  swValues[0].trim();
+                switch (swValues.length)
+                {
+                case 3:
+                    // new Xtremes seem to have added a new message on this port
+                    // so parsing needs to be cautiously and defensively.
 
-                String batteryUnformatted = swValues[1].trim();
-                String direction = swValues[2].trim();
+                    // If the last field doesn't look like the direction, ignore the message
+                    String direction = swValues[2].trim();
+                    boolean isValid = false;
+                    if (!TextUtils.isEmpty(direction))
+                    {
+                        try
+                        {
+                            Integer i = Integer.parseInt(direction);
+                            isValid = ((i == 0) || (i == 1));
+                        }
+                        catch(Exception ex) {}
+                    }
+                    if (isValid)
+                    {
+                        Double speedMPH = 0.0;
+                        Double percent = 0.0;
+                        Double batteryDouble = 0.0;
 
-                Double speedCmPerSecond = Double.parseDouble(speed);
-                Double fudgeFactor = .80;
-                speedCmPerSecond *= fudgeFactor;
+                        String speed = swValues[0].trim();
 
-                Double speedCmPerHour = speedCmPerSecond * 60 * 60;
-                Double speedKmPerHour = speedCmPerHour / 100000;
-                Double speedMPH = speedKmPerHour * 0.6214;
+                        if (!TextUtils.isEmpty(speed))
+                        {
+                            try {
+                                Double speedCmPerSecond = Double.parseDouble(speed);
+                                Double fudgeFactor = .80;
+                                speedCmPerSecond *= fudgeFactor;
 
-                String volts = batteryUnformatted.substring(0, batteryUnformatted.length() - 1);
-                char[] voltsArray = batteryUnformatted.toCharArray();
-                char digit = voltsArray[voltsArray.length - 1];
-                String battery = volts + "." + digit;
+                                Double speedCmPerHour = speedCmPerSecond * 60 * 60;
+                                Double speedKmPerHour = speedCmPerHour / 100000;
+                                speedMPH = speedKmPerHour * 0.6214;
+                            }
+                            catch(Exception ex) {}
+                        }
 
-                Double full = 58.0;
+                        String batteryUnformatted = swValues[1].trim();
 
-                // Mine vibrated at 46.8v when I ran it down completely.
-                Double empty = 47.0d;
+                        if (!TextUtils.isEmpty(batteryUnformatted))
+                        {
+                            try {
+                                String volts = batteryUnformatted.substring(0, batteryUnformatted.length() - 1);
+                                char[] voltsArray = batteryUnformatted.toCharArray();
+                                char digit = voltsArray[voltsArray.length - 1];
+                                String battery = volts + "." + digit;
 
-                Double fullRange = full - empty;
-                Double batteryDouble = Double.parseDouble(battery);
+                                Double full = 58.0;
 
-                Double actualRange = batteryDouble - empty;
-                actualRange = actualRange < 0 ? 0 : actualRange;  // don't allow negative
+                                // Mine vibrated at 46.8v when I ran it down completely.
+                                Double empty = 47.0d;
 
-                Double percent = ((actualRange * 100) / fullRange);
-                if (percent.compareTo(100.0) > 0)
-                    percent = 100.0;
-                else if (percent.compareTo(0.0) < 0)
-                    percent = 0.0;
+                                Double fullRange = full - empty;
+                                batteryDouble = Double.parseDouble(battery);
 
-                intent.putExtra(EXTRA_DATA_CHARGE_PERCENT, new Double(percent));
-                intent.putExtra(EXTRA_DATA_CHARGE_VOLTS, new Double(batteryDouble));
-                intent.putExtra(EXTRA_DATA_DIRECTION, new Boolean(direction.equals("00001") ? true : false));
-                intent.putExtra(EXTRA_DATA_SPEED, new Double(speedMPH));
+                                Double actualRange = batteryDouble - empty;
+                                actualRange = actualRange < 0 ? 0 : actualRange;  // don't allow negative
 
-                sendBroadcast(intent);
+                                percent = ((actualRange * 100) / fullRange);
+                                if (percent.compareTo(100.0) > 0)
+                                    percent = 100.0;
+                                else if (percent.compareTo(0.0) < 0)
+                                    percent = 0.0;
+                            }
+                            catch(Exception ex) {}
+                        }
+
+                        intent.putExtra(EXTRA_DATA_CHARGE_PERCENT, new Double(percent));
+                        intent.putExtra(EXTRA_DATA_CHARGE_VOLTS, new Double(batteryDouble));
+                        intent.putExtra(EXTRA_DATA_DIRECTION, new Boolean(direction.equals("00001") ? true : false));
+                        intent.putExtra(EXTRA_DATA_SPEED, new Double(speedMPH));
+
+                        sendBroadcast(intent);
+                        break;
+                    }
+                }
             }
         }
     }
