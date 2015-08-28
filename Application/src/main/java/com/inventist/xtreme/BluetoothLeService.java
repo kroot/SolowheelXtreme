@@ -132,7 +132,7 @@ public class BluetoothLeService extends Service {
 
         final byte[] data = characteristic.getValue();
 
-        if ((data != null) && (data.length > 0) && (data.length == 20)){
+        if ((data != null) && (data.length > 0)){
             Log.d(TAG, "Data=" + data);
 
             String s = new String(data);
