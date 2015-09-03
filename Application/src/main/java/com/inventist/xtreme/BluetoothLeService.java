@@ -142,9 +142,6 @@ public class BluetoothLeService extends Service {
                 switch (swValues.length)
                 {
                 case 3:
-                    // new Xtremes seem to have added a new message on this port
-                    // so parsing needs to be cautiously and defensively.
-
                     // If the last field doesn't look like the direction, ignore the message
                     String direction = swValues[2].trim();
                     boolean isValid = false;
