@@ -40,6 +40,7 @@ import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
 
+import java.sql.Time;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,6 +76,7 @@ public class XtremeGaugesActivity extends Activity {
     private final String LIST_UUID = "UUID";
 
     private Double previousVoltage = 0d;
+    private long mLastWatchUpdateTime = 0;
 
     // Code to manage Service lifecycle.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -262,7 +264,9 @@ public class XtremeGaugesActivity extends Activity {
         });
     }
 
-    private void displayData(Double chargePercent, Double chargeVolts, Double speed, boolean forward) {
+
+    private void displayData(final Double chargePercent, final Double chargeVolts, final Double speed, final boolean forward) {
+
 
         if ((chargePercent != null) && (speed != null)){
             BatteryGauge f = (BatteryGauge) findViewById(R.id.reading1);
@@ -286,35 +290,42 @@ public class XtremeGaugesActivity extends Activity {
                 tvSpeedUnits.setText("KPH");
             }
 
-
             findViewById(R.id.green_arrow_up).setVisibility(chargeVolts > previousVoltage ? View.VISIBLE : View.GONE);
             findViewById(R.id.red_arrow_down).setVisibility(chargeVolts < previousVoltage ? View.VISIBLE : View.GONE);
             findViewById(R.id.noArrow).setVisibility(chargeVolts.equals(previousVoltage) ? View.VISIBLE : View.GONE);
             previousVoltage = chargeVolts;
 
-            Thread t = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
-                        for (Node node : nodes.getNodes()) {
-                            MessageApi.SendMessageResult result =
-                                    Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), "/message", "hello".getBytes()).await();
-                        }
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                Log.i(TAG, "Wear message sent");
+            // Wear support
+
+            long now = System.currentTimeMillis();
+            if (now - mLastWatchUpdateTime > 1000) {
+                mLastWatchUpdateTime = now;
+
+                final String message = String.format("%d", chargePercent.intValue()) + "," + speed.toString();
+
+                Thread t = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
+
+                            for (Node node : nodes.getNodes()) {
+                                MessageApi.SendMessageResult result =
+                                        Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), "/message", message.getBytes()).await();
                             }
-                        });
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Log.i(TAG, "Wear message sent: " + message);
+                                }
+                            });
+                        } catch (Exception e) {
+                            Log.e(TAG, e.getMessage());
+                        }
                     }
-                    catch (Exception e)
-                    {
-                        Log.e(TAG, e.getMessage());
-                    }
-                }
-            });
-            t.start();
+                });
+                t.start();
+            }
         }
     }
 
