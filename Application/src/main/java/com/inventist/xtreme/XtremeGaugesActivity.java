@@ -31,8 +31,14 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.wearable.Node;
+import com.google.android.gms.wearable.NodeApi;
+import com.google.android.gms.wearable.Wearable;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -48,6 +54,8 @@ import java.util.Locale;
  */
 public class XtremeGaugesActivity extends Activity {
     private final static String TAG = "solowheel"; //.class.getSimpleName();
+
+    private GoogleApiClient mGoogleApiClient;
 
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
@@ -148,6 +156,44 @@ public class XtremeGaugesActivity extends Activity {
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
 
+        initGoogleApiClient();
+    }
+
+    private void initGoogleApiClient() {
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected())
+        {
+            Log.i(TAG, "Google API client already connected");
+        }
+        else
+        {
+            if (mGoogleApiClient == null)
+            {
+                mGoogleApiClient = new GoogleApiClient.Builder(this)
+                        .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+                            @Override
+                            public void onConnected(Bundle bundle) {
+                                Log.i(TAG, "Google API client connected");
+
+                            }
+
+                            @Override
+                            public void onConnectionSuspended(int i) {
+
+                            }
+                        })
+                        .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
+                            @Override
+                            public void onConnectionFailed(ConnectionResult connectionResult) {
+                                Log.i(TAG, "Google API onConnectionFailed: " + connectionResult);
+                            }
+                        })
+                        .addApi(Wearable.API)
+                        .build();
+            }
+
+            if (!mGoogleApiClient.isConnected())
+                mGoogleApiClient.connect();
+        }
     }
 
     @Override
@@ -158,12 +204,14 @@ public class XtremeGaugesActivity extends Activity {
             final boolean result = mBluetoothLeService.connect(mDeviceAddress);
             Log.d(TAG, "Connect request result=" + result);
         }
+        initGoogleApiClient();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         unregisterReceiver(mGattUpdateReceiver);
+        mGoogleApiClient.disconnect();
     }
 
     @Override
@@ -171,6 +219,7 @@ public class XtremeGaugesActivity extends Activity {
         super.onDestroy();
         unbindService(mServiceConnection);
         mBluetoothLeService = null;
+        mGoogleApiClient = null;
     }
 
     @Override
@@ -242,6 +291,30 @@ public class XtremeGaugesActivity extends Activity {
             findViewById(R.id.red_arrow_down).setVisibility(chargeVolts < previousVoltage ? View.VISIBLE : View.GONE);
             findViewById(R.id.noArrow).setVisibility(chargeVolts.equals(previousVoltage) ? View.VISIBLE : View.GONE);
             previousVoltage = chargeVolts;
+
+            Thread t = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
+                        for (Node node : nodes.getNodes()) {
+                            MessageApi.SendMessageResult result =
+                                    Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), "/message", "hello".getBytes()).await();
+                        }
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Log.i(TAG, "Wear message sent");
+                            }
+                        });
+                    }
+                    catch (Exception e)
+                    {
+                        Log.e(TAG, e.getMessage());
+                    }
+                }
+            });
+            t.start();
         }
     }
 
