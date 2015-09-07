@@ -57,19 +57,14 @@ import java.util.Locale;
 public class XtremeGaugesActivity extends Activity {
     private final static String TAG = "solowheel"; //.class.getSimpleName();
 
-    //private GoogleApiClient mGoogleApiClient;
-
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
 
    // private TextView mConnectionState;
-    private TextView mDataField;
     private String mDeviceName;
     private String mDeviceAddress;
-    //private ExpandableListView mGattServicesList;
     private BluetoothLeService mBluetoothLeService;
-    private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics =
-            new ArrayList<>();
+    private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics = new ArrayList<>();
     private boolean mConnected = false;
     private BluetoothGattCharacteristic mNotifyCharacteristic;
 
@@ -77,7 +72,6 @@ public class XtremeGaugesActivity extends Activity {
     private final String LIST_UUID = "UUID";
 
     private Double previousVoltage = 0d;
-    private long mLastWatchUpdateTime = 0;
 
     // Code to manage Service lifecycle.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -117,7 +111,6 @@ public class XtremeGaugesActivity extends Activity {
                 mConnected = false;
                 updateConnectionState(R.string.disconnected);
                 invalidateOptionsMenu();
-                //clearUI();
 
                 finish();
 
@@ -140,8 +133,6 @@ public class XtremeGaugesActivity extends Activity {
         }
     };
 
-
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -161,46 +152,7 @@ public class XtremeGaugesActivity extends Activity {
         }
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
-
-        //initGoogleApiClient();
     }
-/*
-    private void initGoogleApiClient() {
-        if (mGoogleApiClient != null && mGoogleApiClient.isConnected())
-        {
-            Log.i(TAG, "Google API client already connected");
-        }
-        else
-        {
-            if (mGoogleApiClient == null)
-            {
-                mGoogleApiClient = new GoogleApiClient.Builder(this)
-                        .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
-                            @Override
-                            public void onConnected(Bundle bundle) {
-                                Log.i(TAG, "Google API client connected");
-
-                            }
-
-                            @Override
-                            public void onConnectionSuspended(int i) {
-
-                            }
-                        })
-                        .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
-                            @Override
-                            public void onConnectionFailed(ConnectionResult connectionResult) {
-                                Log.i(TAG, "Google API onConnectionFailed: " + connectionResult);
-                            }
-                        })
-                        .addApi(Wearable.API)
-                        .build();
-            }
-
-            if (!mGoogleApiClient.isConnected())
-                mGoogleApiClient.connect();
-        }
-    }*/
 
     @Override
     protected void onResume() {
@@ -210,14 +162,12 @@ public class XtremeGaugesActivity extends Activity {
             final boolean result = mBluetoothLeService.connect(mDeviceAddress);
             Log.d(TAG, "Connect request result=" + result);
         }
-       // initGoogleApiClient();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         unregisterReceiver(mGattUpdateReceiver);
-        //mGoogleApiClient.disconnect();
     }
 
     @Override
@@ -225,7 +175,6 @@ public class XtremeGaugesActivity extends Activity {
         super.onDestroy();
         unbindService(mServiceConnection);
         mBluetoothLeService = null;
-        //mGoogleApiClient = null;
     }
 
     @Override
@@ -268,9 +217,7 @@ public class XtremeGaugesActivity extends Activity {
         });
     }
 
-
     private void displayData(final Double chargePercent, final Double chargeVolts, final Double speed, final boolean forward) {
-
 
         if ((chargePercent != null) && (speed != null)){
             BatteryGauge f = (BatteryGauge) findViewById(R.id.reading1);
@@ -285,16 +232,16 @@ public class XtremeGaugesActivity extends Activity {
             TextView tvSpeed = (TextView) findViewById(R.id.tvSpeed);
             TextView tvSpeedUnits = (TextView) findViewById(R.id.tvSpeedUnits);
 
-            String formattedSpeed;
+            //String formattedSpeed;
             if (useMph) {
                 tvSpeed.setText(String.format("%.1f", speed));
                 tvSpeedUnits.setText("MPH");
-                formattedSpeed = String.format("%.1f", speed) + " MPH";
+//                formattedSpeed = String.format("%.1f", speed) + " MPH";
             }
             else {
                 tvSpeed.setText(String.format("%.1f", speed * 1.6));
                 tvSpeedUnits.setText("KPH");
-                formattedSpeed = String.format("%.1f", speed * 1.6) + " KPH";
+//                formattedSpeed = String.format("%.1f", speed * 1.6) + " KPH";
             }
 
             findViewById(R.id.green_arrow_up).setVisibility(chargeVolts > previousVoltage ? View.VISIBLE : View.GONE);
@@ -307,14 +254,14 @@ public class XtremeGaugesActivity extends Activity {
 
     private void displayGattServices(List<BluetoothGattService> gattServices) {
         if (gattServices == null) return;
-        String uuidService = null;
-        String uuidCharacteristic = null;
+        String uuidService;
+        String uuidCharacteristic;
         String unknownServiceString = getResources().getString(R.string.unknown_service);
         String unknownCharaString = getResources().getString(R.string.unknown_characteristic);
         ArrayList<HashMap<String, String>> gattServiceData = new ArrayList<HashMap<String, String>>();
         ArrayList<ArrayList<HashMap<String, String>>> gattCharacteristicData
                 = new ArrayList<ArrayList<HashMap<String, String>>>();
-        mGattCharacteristics = new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
+        mGattCharacteristics = new ArrayList<>();
 
         // Loops through available GATT Services.
         for (BluetoothGattService gattService : gattServices) {
@@ -329,12 +276,10 @@ public class XtremeGaugesActivity extends Activity {
                 currentServiceData.put(LIST_UUID, uuidService);
                 gattServiceData.add(currentServiceData);
 
-                ArrayList<HashMap<String, String>> gattCharacteristicGroupData =
-                        new ArrayList<HashMap<String, String>>();
+                ArrayList<HashMap<String, String>> gattCharacteristicGroupData = new ArrayList<>();
                 List<BluetoothGattCharacteristic> gattCharacteristics =
                         gattService.getCharacteristics();
-                ArrayList<BluetoothGattCharacteristic> charas =
-                        new ArrayList<BluetoothGattCharacteristic>();
+                ArrayList<BluetoothGattCharacteristic> charas = new ArrayList<>();
 
                 // Loops through available Characteristics.
                 for (BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {
