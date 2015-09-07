@@ -75,12 +75,18 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
     private class Engine extends CanvasWatchFaceService.Engine {
         Paint mBackgroundPaint;
         Paint mHandPaint;
-        Paint mTextPaint;
+        Paint mTextBatteryPaint;
+        Paint mTextSpeedPaint;
+        private Paint arcPaintBatteryFill;
+        private Paint arcPaintBatteryForeStroke;
+        private Paint arcPaintBatteryBackStroke;
+
         boolean mAmbient;
         Time mTime;
 
-        Double mSpeed = 0.0;
+        String mFormattedSpeed = "";
         Double mBatteryPercent = 0.0;
+       // String mSpeedUnits = "";
 
         final Handler mUpdateTimeHandler = new EngineHandler(this);
 
@@ -93,8 +99,6 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
         };
         boolean mRegisteredTimeZoneReceiver = false;
 
-        private Paint arcPaintBatteryFill;
-        private Paint arcPaintBatteryStroke;
 
         /**
          * Whether the display supports fewer bits for each color in ambient mode. When true, we
@@ -104,7 +108,7 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
 
         @Override
         public void onCreate(SurfaceHolder holder) {
-            Log.i("XTREME", "onCreate");
+            Log.i(TAG, "onCreate");
 
             super.onCreate(holder);
 
@@ -125,21 +129,36 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
             mHandPaint.setAntiAlias(true);
             mHandPaint.setStrokeCap(Paint.Cap.ROUND);
 
-            mTextPaint = new Paint();
-            mTextPaint.setColor(resources.getColor(R.color.analog_hands));
-            mTextPaint.setStrokeWidth(resources.getDimension(R.dimen.analog_hand_stroke));
-            mTextPaint.setAntiAlias(true);
-            mTextPaint.setStrokeCap(Paint.Cap.ROUND);
-            mTextPaint.setTextSize(30);
+            mTextSpeedPaint = new Paint();
+            mTextSpeedPaint.setColor(resources.getColor(R.color.analog_hands));
+            mTextSpeedPaint.setStrokeWidth(resources.getDimension(R.dimen.analog_hand_stroke));
+            mTextSpeedPaint.setAntiAlias(true);
+            mTextSpeedPaint.setStrokeCap(Paint.Cap.ROUND);
+            mTextSpeedPaint.setTextSize(20);
+
+            mTextBatteryPaint = new Paint();
+            mTextBatteryPaint.setColor(resources.getColor(R.color.analog_hands));
+            mTextBatteryPaint.setStrokeWidth(resources.getDimension(R.dimen.analog_hand_stroke));
+            mTextBatteryPaint.setAntiAlias(true);
+            mTextBatteryPaint.setStrokeCap(Paint.Cap.ROUND);
+            mTextBatteryPaint.setTextSize(40);
 
             arcPaintBatteryFill = new Paint();
             arcPaintBatteryFill.setAntiAlias(true);
             arcPaintBatteryFill.setStyle(Paint.Style.FILL);
 
-            arcPaintBatteryStroke = new Paint();
-            arcPaintBatteryStroke.setAntiAlias(true);
-            arcPaintBatteryStroke.setStrokeWidth(1);
-            arcPaintBatteryStroke.setStyle(Paint.Style.STROKE);
+            arcPaintBatteryForeStroke = new Paint();
+            arcPaintBatteryForeStroke.setAntiAlias(true);
+            arcPaintBatteryForeStroke.setStrokeWidth(1);
+            arcPaintBatteryForeStroke.setStyle(Paint.Style.STROKE);
+            arcPaintBatteryForeStroke.setColor(Color.argb(255, 0, 0, 40));
+
+            arcPaintBatteryBackStroke = new Paint();
+            arcPaintBatteryBackStroke.setAntiAlias(true);
+            arcPaintBatteryBackStroke.setStrokeWidth(1);
+            arcPaintBatteryBackStroke.setStyle(Paint.Style.STROKE);
+            arcPaintBatteryBackStroke.setColor(resources.getColor(R.color.analog_background));
+
             mBackgroundPaint.setColor(resources.getColor(R.color.analog_background));
 
             mTime = new Time();
@@ -149,7 +168,7 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
 
         @Override
         public void onDestroy() {
-            Log.i("XTREME", "onDestroy");
+            Log.i(TAG, "onDestroy");
             mUpdateTimeHandler.removeMessages(MSG_UPDATE_TIME);
             super.onDestroy();
             closeGoogleApiClient();
@@ -163,21 +182,22 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
                         .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
                             @Override
                             public void onConnected(Bundle bundle) {
-                                Log.i("XTREME", "onConnected: " + bundle);
+                                Log.i(TAG, "onConnected: " + bundle);
 
-                                Wearable.MessageApi.addListener(mGoogleApiClient, messageListener);
+                                if (mGoogleApiClient != null)
+                                    Wearable.MessageApi.addListener(mGoogleApiClient, messageListener);
                             }
 
                             @Override
                             public void onConnectionSuspended(int i) {
-                                Log.i("XTREME", "onConnectionSuspended: " + i);
+                                Log.i(TAG, "onConnectionSuspended: " + i);
 
                             }
                         })
                         .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
                             @Override
                             public void onConnectionFailed(ConnectionResult connectionResult) {
-                                Log.i("XTREME", "onConnectionFailed: " + connectionResult);
+                                Log.i(TAG, "onConnectionFailed: " + connectionResult);
 
                             }
                         })
@@ -196,22 +216,27 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
                     mGoogleApiClient.disconnect();
 
                 mGoogleApiClient = null;
+                mBatteryPercent = 0.0;
+                invalidate();
             }
         }
 
         MessageApi.MessageListener messageListener = new MessageApi.MessageListener() {
             @Override
             public void onMessageReceived(MessageEvent messageEvent) {
-                String msg = new String(messageEvent.getData());
+                Log.i(TAG, "onMessageReceived path: " + messageEvent.getPath());
 
-                String[] parts = msg.split(",");
-                if (parts != null && parts.length == 2)
-                {
-                    Log.i("XTREME", "onMessageReceived: charge:" + parts[0] + " speed:" + parts[1]);
-                    mBatteryPercent = Double.parseDouble(parts[0]);
-                    mSpeed = Double.parseDouble(parts[1]);
+                if (messageEvent.getPath().equals("/solowheelxtreme")) {
+                    String msg = new String(messageEvent.getData());
+
+                    String[] parts = msg.split(",");
+                    if (parts != null && parts.length == 3) {
+                        Log.i(TAG, "onMessageReceived: charge:" + parts[0] + " speed:" + parts[1]);
+                        mBatteryPercent = Double.parseDouble(parts[0]);
+                        mFormattedSpeed = parts[1] + " " + parts[2];
+                    }
+                    Log.i(TAG, "onMessageReceived: " + msg);
                 }
-                Log.i("XTREME", "onMessageReceived: " + msg);
             }
         };
 
@@ -228,11 +253,12 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
 
         @Override
         public void onAmbientModeChanged(boolean inAmbientMode) {
-            Log.i("XTREME", "onAmbient");
+            Log.i(TAG, "onAmbient: " + inAmbientMode);
 
             super.onAmbientModeChanged(inAmbientMode);
             if (mAmbient != inAmbientMode) {
                 mAmbient = inAmbientMode;
+
                 if (mLowBitAmbient) {
                     mHandPaint.setAntiAlias(!inAmbientMode);
                 }
@@ -260,23 +286,31 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
             float centerX = width / 2f;
             float centerY = height / 2f;
 
-            // battery text
-            int percent = mBatteryPercent.intValue();
-            String percentText = String.format("%d", percent) + "%";
-            //canvas.drawText(String.format("%d", percent) + "%", centerX, centerY + (height / 8), mTextPaint);
+            if (mBatteryPercent > 0) {
+                // battery text
+                int percent = mBatteryPercent.intValue();
+                String percentText = String.format("%d", percent) + "%";
+                //canvas.drawText(String.format("%d", percent) + "%", centerX, centerY + (height / 8), mTextPaint);
 
-            android.graphics.Rect TextBounds = new android.graphics.Rect();
-            mTextPaint.getTextBounds(percentText, 0, percentText.length(), TextBounds);
-            canvas.drawText
-                    (
-                            percentText,
-                            centerX - (TextBounds.right + TextBounds.left) / 2.0f,
-                            centerY - (TextBounds.bottom + TextBounds.top) / 2.0f + 40,
-                            mTextPaint
-                    );
+                android.graphics.Rect TextBounds = new android.graphics.Rect();
+                mTextBatteryPaint.getTextBounds(percentText, 0, percentText.length(), TextBounds);
+                canvas.drawText
+                        (
+                                percentText,
+                                centerX - (TextBounds.right + TextBounds.left) / 2.0f,
+                                centerY - (TextBounds.bottom + TextBounds.top) / 2.0f + 40,
+                                mTextBatteryPaint
+                        );
 
-            // only draw the gauge if non-ambient mode
-            if (!mAmbient) {
+                // speed
+                mTextSpeedPaint.getTextBounds(mFormattedSpeed, 0, mFormattedSpeed.length(), TextBounds);
+                canvas.drawText
+                        (
+                                mFormattedSpeed,
+                                centerX - (TextBounds.right + TextBounds.left) / 2.0f,
+                                centerY - (TextBounds.bottom + TextBounds.top) / 2.0f - 40,
+                                mTextSpeedPaint
+                        );
 
                 // maintain fixed aspect ratio
                 float gaugeWidth = width;
@@ -294,12 +328,12 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
                 float pad = dpToPixels(20);
                 RectF arcRect = new RectF(gaugeRect.left + pad, gaugeRect.top + pad, gaugeRect.right - pad, gaugeRect.bottom - pad);
 
-                LedSegmentData ledSegmentData = new LedSegmentData(canvas, (int)centerX, (int)centerY, arcRect).invoke();
+                LedSegmentData ledSegmentData = new LedSegmentData(canvas, (int) centerX, (int) centerY, arcRect).invoke();
                 float segmentAngle = ledSegmentData.getSegmentArcSpan();
                 Path ptsSegments = ledSegmentData.getPtsSegments();
                 //float innerRadius = ledSegmentData.getInnerRadius();
 
-                DrawLedSegments(canvas, (int)centerX, (int)centerY, ptsSegments, segmentAngle);
+                DrawLedSegments(canvas, (int) centerX, (int) centerY, ptsSegments, segmentAngle);
             }
 
             // hands
@@ -349,7 +383,7 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
         }
 
         private void registerReceiver() {
-            Log.i("XTREME", "register");
+            Log.i(TAG, "register");
 
             if (mRegisteredTimeZoneReceiver) {
                 return;
@@ -358,11 +392,11 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
             IntentFilter filter = new IntentFilter(Intent.ACTION_TIMEZONE_CHANGED);
             XtremeWatchFace.this.registerReceiver(mTimeZoneReceiver, filter);
 
-//            initGoogleApiClient();
+            initGoogleApiClient();
         }
 
         private void unregisterReceiver() {
-            Log.i("XTREME", "unRegister");
+            Log.i(TAG, "unRegister");
 
             if (!mRegisteredTimeZoneReceiver) {
                 return;
@@ -370,7 +404,7 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
             mRegisteredTimeZoneReceiver = false;
             XtremeWatchFace.this.unregisterReceiver(mTimeZoneReceiver);
 
-//            closeGoogleApiClient();
+            closeGoogleApiClient();
         }
 
         /**
@@ -389,7 +423,8 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
          * only run when we're visible and in interactive mode.
          */
         private boolean shouldTimerBeRunning() {
-            return isVisible() && !isInAmbientMode();
+            return isVisible();
+            //return isVisible() && !isInAmbientMode();
         }
 
         /**
@@ -401,6 +436,8 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
                 long timeMs = System.currentTimeMillis();
                 long delayMs = INTERACTIVE_UPDATE_RATE_MS
                         - (timeMs % INTERACTIVE_UPDATE_RATE_MS);
+                if (isInAmbientMode())
+                    delayMs = 10 * INTERACTIVE_UPDATE_RATE_MS;
                 mUpdateTimeHandler.sendEmptyMessageDelayed(MSG_UPDATE_TIME, delayMs);
             }
         }
@@ -420,29 +457,42 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
 
             for(int i=numSegments; i >= 0; i--)
             {
-//            canvas.rotate(-segmentAngle, centerX, centerY);
 
-                if(i > mBatteryPercent)
-                    alpha = 0x10;
-                else
-                    alpha = 0xFF;
+                alpha = 0xFF;
 
                 red = 255 - (int)(i * scale);
                 green = (int)(i * scale);
                 blue = 0;
+
+                if(i > mBatteryPercent)
+                {
+                    red = 40;
+                    green = 40;
+                    blue = 40;
+                }
 
                 Log.d(TAG, String.format("i=%d rga=[%2x][%2x]%2x", i, red, green, alpha));
 
                 arcPaintBatteryFill.setColor(Color.argb(alpha, red, green, blue));
                 canvas.drawPath(ptsSegments, arcPaintBatteryFill);
 
-                canvas.drawPath(ptsSegments, arcPaintBatteryStroke);
-
                 canvas.rotate(-segmentAngle, centerX, centerY);
             }
             canvas.restore();
         }
+
+        public int Lighten(int red, int green, int blue, double inAmount)
+        {
+            return Color.argb(
+
+                    255,
+                    (int) Math.min(255, red + 255 * inAmount),
+                    (int) Math.min(255, green + 255 * inAmount),
+                    (int) Math.min(255, blue + 255 * inAmount) );
+        }
     }
+
+
 
     private static class EngineHandler extends Handler {
         private final WeakReference<XtremeWatchFace.Engine> mWeakReference;

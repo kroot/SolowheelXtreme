@@ -16,6 +16,7 @@
 
 package com.inventist.xtreme;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
@@ -56,7 +57,7 @@ import java.util.Locale;
 public class XtremeGaugesActivity extends Activity {
     private final static String TAG = "solowheel"; //.class.getSimpleName();
 
-    private GoogleApiClient mGoogleApiClient;
+    //private GoogleApiClient mGoogleApiClient;
 
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
@@ -68,7 +69,7 @@ public class XtremeGaugesActivity extends Activity {
     //private ExpandableListView mGattServicesList;
     private BluetoothLeService mBluetoothLeService;
     private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics =
-            new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
+            new ArrayList<>();
     private boolean mConnected = false;
     private BluetoothGattCharacteristic mNotifyCharacteristic;
 
@@ -153,14 +154,17 @@ public class XtremeGaugesActivity extends Activity {
         mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
         mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
 
-        getActionBar().setTitle(mDeviceAddress);
-        getActionBar().setDisplayHomeAsUpEnabled(true);
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setTitle(mDeviceAddress);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
 
-        initGoogleApiClient();
+        //initGoogleApiClient();
     }
-
+/*
     private void initGoogleApiClient() {
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected())
         {
@@ -196,7 +200,7 @@ public class XtremeGaugesActivity extends Activity {
             if (!mGoogleApiClient.isConnected())
                 mGoogleApiClient.connect();
         }
-    }
+    }*/
 
     @Override
     protected void onResume() {
@@ -206,14 +210,14 @@ public class XtremeGaugesActivity extends Activity {
             final boolean result = mBluetoothLeService.connect(mDeviceAddress);
             Log.d(TAG, "Connect request result=" + result);
         }
-        initGoogleApiClient();
+       // initGoogleApiClient();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         unregisterReceiver(mGattUpdateReceiver);
-        mGoogleApiClient.disconnect();
+        //mGoogleApiClient.disconnect();
     }
 
     @Override
@@ -221,7 +225,7 @@ public class XtremeGaugesActivity extends Activity {
         super.onDestroy();
         unbindService(mServiceConnection);
         mBluetoothLeService = null;
-        mGoogleApiClient = null;
+        //mGoogleApiClient = null;
     }
 
     @Override
@@ -281,51 +285,22 @@ public class XtremeGaugesActivity extends Activity {
             TextView tvSpeed = (TextView) findViewById(R.id.tvSpeed);
             TextView tvSpeedUnits = (TextView) findViewById(R.id.tvSpeedUnits);
 
+            String formattedSpeed;
             if (useMph) {
                 tvSpeed.setText(String.format("%.1f", speed));
                 tvSpeedUnits.setText("MPH");
+                formattedSpeed = String.format("%.1f", speed) + " MPH";
             }
             else {
                 tvSpeed.setText(String.format("%.1f", speed * 1.6));
                 tvSpeedUnits.setText("KPH");
+                formattedSpeed = String.format("%.1f", speed * 1.6) + " KPH";
             }
 
             findViewById(R.id.green_arrow_up).setVisibility(chargeVolts > previousVoltage ? View.VISIBLE : View.GONE);
             findViewById(R.id.red_arrow_down).setVisibility(chargeVolts < previousVoltage ? View.VISIBLE : View.GONE);
             findViewById(R.id.noArrow).setVisibility(chargeVolts.equals(previousVoltage) ? View.VISIBLE : View.GONE);
             previousVoltage = chargeVolts;
-
-            // Wear support
-
-            long now = System.currentTimeMillis();
-            if (now - mLastWatchUpdateTime > 1000) {
-                mLastWatchUpdateTime = now;
-
-                final String message = String.format("%d", chargePercent.intValue()) + "," + speed.toString();
-
-                Thread t = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
-
-                            for (Node node : nodes.getNodes()) {
-                                MessageApi.SendMessageResult result =
-                                        Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), "/message", message.getBytes()).await();
-                            }
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Log.i(TAG, "Wear message sent: " + message);
-                                }
-                            });
-                        } catch (Exception e) {
-                            Log.e(TAG, e.getMessage());
-                        }
-                    }
-                });
-                t.start();
-            }
         }
     }
 
