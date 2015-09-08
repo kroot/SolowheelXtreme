@@ -21,6 +21,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -80,6 +82,7 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
         private Paint arcPaintBatteryFill;
         private Paint arcPaintBatteryForeStroke;
         private Paint arcPaintBatteryBackStroke;
+        private Bitmap mBackgroundBitmap;
 
         boolean mAmbient;
         Time mTime;
@@ -160,6 +163,8 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
             arcPaintBatteryBackStroke.setColor(resources.getColor(R.color.analog_background));
 
             mBackgroundPaint.setColor(resources.getColor(R.color.analog_background));
+
+            mBackgroundBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.bg);
 
             mTime = new Time();
 
@@ -334,6 +339,17 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
                 //float innerRadius = ledSegmentData.getInnerRadius();
 
                 DrawLedSegments(canvas, (int) centerX, (int) centerY, ptsSegments, segmentAngle);
+            }
+            else if (!isInAmbientMode())
+            {
+                /* Scale loaded background image (more efficient) if surface dimensions change. */
+                float scale = ((float) width) / (float) mBackgroundBitmap.getWidth();
+
+                mBackgroundBitmap = Bitmap.createScaledBitmap(mBackgroundBitmap,
+                        (int) (mBackgroundBitmap.getWidth() * scale),
+                        (int) (mBackgroundBitmap.getHeight() * scale), true);
+
+                canvas.drawBitmap(mBackgroundBitmap, 0, 0, mBackgroundPaint);
             }
 
             // hands
