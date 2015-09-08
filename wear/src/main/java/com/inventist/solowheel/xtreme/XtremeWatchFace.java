@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.inventist.xtreme;
+package com.inventist.solowheel.xtreme;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.inventist.xtreme;
+package com.inventist.solowheel.xtreme;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -22,7 +22,6 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
@@ -43,7 +42,6 @@ import com.google.android.gms.wearable.Wearable;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.UUID;
 
 /**
  * Service for managing connection and data communication with a GATT server hosted on a
@@ -65,23 +63,23 @@ public class BluetoothLeService extends Service {
     private static final int STATE_CONNECTED = 2;
 
     public final static String ACTION_GATT_CONNECTED =
-            "com.inventist.xtreme.ACTION_GATT_CONNECTED";
+            "com.inventist.solowheel.xtreme.ACTION_GATT_CONNECTED";
     public final static String ACTION_GATT_DISCONNECTED =
-            "com.inventist.xtreme.ACTION_GATT_DISCONNECTED";
+            "com.inventist.solowheel.xtreme.ACTION_GATT_DISCONNECTED";
     public final static String ACTION_GATT_SERVICES_DISCOVERED =
-            "com.inventist.xtreme.ACTION_GATT_SERVICES_DISCOVERED";
+            "com.inventist.solowheel.xtreme.ACTION_GATT_SERVICES_DISCOVERED";
     public final static String ACTION_DATA_AVAILABLE =
-            "com.inventist.xtreme.ACTION_DATA_AVAILABLE";
+            "com.inventist.solowheel.xtreme.ACTION_DATA_AVAILABLE";
     public final static String EXTRA_DATA =
-            "com.inventist.xtreme.EXTRA_DATA";
+            "com.inventist.solowheel.xtreme.EXTRA_DATA";
     public final static String EXTRA_DATA_SPEED =
-            "com.inventist.xtreme.EXTRA_DATA_SPEED";
+            "com.inventist.solowheel.xtreme.EXTRA_DATA_SPEED";
     public final static String EXTRA_DATA_CHARGE_PERCENT =
-            "com.inventist.xtreme.EXTRA_DATA_CHARGE_PERCENT";
+            "com.inventist.solowheel.xtreme.EXTRA_DATA_CHARGE_PERCENT";
     public final static String EXTRA_DATA_CHARGE_VOLTS =
-            "com.inventist.xtreme.EXTRA_DATA_CHARGE_VOLTS";
+            "com.inventist.solowheel.xtreme.EXTRA_DATA_CHARGE_VOLTS";
     public final static String EXTRA_DATA_DIRECTION =
-            "com.inventist.xtreme.EXTRA_DATA_DIRECTION";
+            "com.inventist.solowheel.xtreme.EXTRA_DATA_DIRECTION";
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.

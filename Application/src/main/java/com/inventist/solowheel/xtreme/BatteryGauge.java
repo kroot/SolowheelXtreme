@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.inventist.xtreme;
+package com.inventist.solowheel.xtreme;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -35,6 +35,8 @@ import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
+
+import com.inventist.solowheel.xtreme.R;
 
 public class BatteryGauge extends View {
 	private static final String TAG = "solowheel";

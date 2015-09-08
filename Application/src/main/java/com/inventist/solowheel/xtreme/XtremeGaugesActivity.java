@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.inventist.xtreme;
+package com.inventist.solowheel.xtreme;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -34,14 +34,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.wearable.MessageApi;
-import com.google.android.gms.wearable.Node;
-import com.google.android.gms.wearable.NodeApi;
-import com.google.android.gms.wearable.Wearable;
+import com.inventist.solowheel.xtreme.R;
 
-import java.sql.Time;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
