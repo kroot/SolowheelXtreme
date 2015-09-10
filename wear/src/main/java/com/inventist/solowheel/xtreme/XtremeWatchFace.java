@@ -76,7 +76,8 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
 
     private class Engine extends CanvasWatchFaceService.Engine {
         Paint mBackgroundPaint;
-        Paint mHandPaint;
+        Paint mHourHandPaint;
+        Paint mMinuteHandPaint;
         Paint mTextBatteryPaint;
         Paint mTextSpeedPaint;
         private Paint arcPaintBatteryFill;
@@ -126,22 +127,28 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
             mBackgroundPaint = new Paint();
             mBackgroundPaint.setColor(resources.getColor(R.color.analog_background));
 
-            mHandPaint = new Paint();
-            mHandPaint.setColor(resources.getColor(R.color.analog_hands));
-            mHandPaint.setStrokeWidth(resources.getDimension(R.dimen.analog_hand_stroke));
-            mHandPaint.setAntiAlias(true);
-            mHandPaint.setStrokeCap(Paint.Cap.ROUND);
+            mMinuteHandPaint = new Paint();
+            mMinuteHandPaint.setColor(resources.getColor(R.color.analog_hands));
+            mMinuteHandPaint.setStrokeWidth(resources.getDimension(R.dimen.analog_minute_hand_stroke));
+            mMinuteHandPaint.setAntiAlias(true);
+            mMinuteHandPaint.setStrokeCap(Paint.Cap.ROUND);
+
+            mHourHandPaint = new Paint();
+            mHourHandPaint.setColor(resources.getColor(R.color.analog_hands));
+            mHourHandPaint.setStrokeWidth(resources.getDimension(R.dimen.analog_hour_hand_stroke));
+            mHourHandPaint.setAntiAlias(true);
+            mHourHandPaint.setStrokeCap(Paint.Cap.ROUND);
 
             mTextSpeedPaint = new Paint();
             mTextSpeedPaint.setColor(resources.getColor(R.color.analog_hands));
-            mTextSpeedPaint.setStrokeWidth(resources.getDimension(R.dimen.analog_hand_stroke));
+            mTextSpeedPaint.setStrokeWidth(resources.getDimension(R.dimen.analog_minute_hand_stroke));
             mTextSpeedPaint.setAntiAlias(true);
             mTextSpeedPaint.setStrokeCap(Paint.Cap.ROUND);
             mTextSpeedPaint.setTextSize(20);
 
             mTextBatteryPaint = new Paint();
             mTextBatteryPaint.setColor(resources.getColor(R.color.analog_hands));
-            mTextBatteryPaint.setStrokeWidth(resources.getDimension(R.dimen.analog_hand_stroke));
+            mTextBatteryPaint.setStrokeWidth(resources.getDimension(R.dimen.analog_minute_hand_stroke));
             mTextBatteryPaint.setAntiAlias(true);
             mTextBatteryPaint.setStrokeCap(Paint.Cap.ROUND);
             mTextBatteryPaint.setTextSize(40);
@@ -229,7 +236,7 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
         MessageApi.MessageListener messageListener = new MessageApi.MessageListener() {
             @Override
             public void onMessageReceived(MessageEvent messageEvent) {
-                Log.i(TAG, "onMessageReceived path: " + messageEvent.getPath());
+               // Log.i(TAG, "onMessageReceived path: " + messageEvent.getPath());
 
                 if (messageEvent.getPath().equals("/solowheelxtreme")) {
                     String msg = new String(messageEvent.getData());
@@ -237,10 +244,11 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
                     String[] parts = msg.split(",");
                     if (parts != null && parts.length == 3) {
                         Log.i(TAG, "onMessageReceived: charge:" + parts[0] + " speed:" + parts[1]);
+
                         mBatteryPercent = Double.parseDouble(parts[0]);
                         mFormattedSpeed = parts[1] + " " + parts[2];
                     }
-                    Log.i(TAG, "onMessageReceived: " + msg);
+                   // Log.i(TAG, "onMessageReceived: " + msg);
                 }
             }
         };
@@ -265,7 +273,8 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
                 mAmbient = inAmbientMode;
 
                 if (mLowBitAmbient) {
-                    mHandPaint.setAntiAlias(!inAmbientMode);
+                    mMinuteHandPaint.setAntiAlias(!inAmbientMode);
+                    mHourHandPaint.setAntiAlias(!inAmbientMode);
                 }
                 invalidate();
             }
@@ -352,6 +361,23 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
                 canvas.drawBitmap(mBackgroundBitmap, 0, 0, mBackgroundPaint);
             }
 
+                        /*
+             * Draw ticks. Usually you will want to bake this directly into the photo, but in
+             * cases where you want to allow users to select their own photos, this dynamically
+             * creates them on top of the photo.
+             */
+            float innerTickRadius = centerX - 10;
+            float outerTickRadius = centerX;
+            for (int tickIndex = 0; tickIndex < 12; tickIndex++) {
+                float tickRot = (float) (tickIndex * Math.PI * 2 / 12);
+                float innerX = (float) Math.sin(tickRot) * innerTickRadius;
+                float innerY = (float) -Math.cos(tickRot) * innerTickRadius;
+                float outerX = (float) Math.sin(tickRot) * outerTickRadius;
+                float outerY = (float) -Math.cos(tickRot) * outerTickRadius;
+                canvas.drawLine(centerX + innerX, centerY + innerY,
+                        centerX + outerX, centerY + outerY, mMinuteHandPaint);
+            }
+
             // hands
             float secRot = mTime.second / 30f * (float) Math.PI;
             int minutes = mTime.minute;
@@ -362,19 +388,19 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
             float minLength = centerX - 40;
             float hrLength = centerX - 80;
 
-            if (!mAmbient) {
+/*            if (!mAmbient) {
                 float secX = (float) Math.sin(secRot) * secLength;
                 float secY = (float) -Math.cos(secRot) * secLength;
                 canvas.drawLine(centerX, centerY, centerX + secX, centerY + secY, mHandPaint);
-            }
+            }*/
 
             float minX = (float) Math.sin(minRot) * minLength;
             float minY = (float) -Math.cos(minRot) * minLength;
-            canvas.drawLine(centerX, centerY, centerX + minX, centerY + minY, mHandPaint);
+            canvas.drawLine(centerX, centerY, centerX + minX, centerY + minY, mMinuteHandPaint);
 
             float hrX = (float) Math.sin(hrRot) * hrLength;
             float hrY = (float) -Math.cos(hrRot) * hrLength;
-            canvas.drawLine(centerX, centerY, centerX + hrX, centerY + hrY, mHandPaint);
+            canvas.drawLine(centerX, centerY, centerX + hrX, centerY + hrY, mHourHandPaint);
         }
 
         @Override

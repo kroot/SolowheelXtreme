@@ -28,6 +28,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.text.format.Time;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -66,12 +67,17 @@ public class XtremeGaugesActivity extends Activity {
     private final String LIST_UUID = "UUID";
 
     private Double previousVoltage = 0d;
+    private long mLastMessageReceived;
+    private Thread mWatchDogThread;
+    private boolean mKeepWatchDogTimer = true;
 
     // Code to manage Service lifecycle.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
 
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder service) {
+            Log.i(TAG, "Gauges onServiceConnected");
+
             mBluetoothLeService = ((BluetoothLeService.LocalBinder) service).getService();
             if (!mBluetoothLeService.initialize()) {
                 Log.e(TAG, "Unable to initialize Bluetooth");
@@ -83,6 +89,7 @@ public class XtremeGaugesActivity extends Activity {
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
+            Log.i(TAG, "Gauges onServiceDisconnected");
             mBluetoothLeService = null;
         }
     };
@@ -101,26 +108,28 @@ public class XtremeGaugesActivity extends Activity {
                 mConnected = true;
                 updateConnectionState(R.string.connected);
                 invalidateOptionsMenu();
+                mLastMessageReceived = System.currentTimeMillis();
+
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
                 mConnected = false;
                 updateConnectionState(R.string.disconnected);
                 invalidateOptionsMenu();
 
-                finish();
+                finish(); // return to scanning activity
 
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 // Show all the supported services and characteristics on the user interface.
                 displayGattServices(mBluetoothLeService.getSupportedGattServices());
 
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-                //displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+                mLastMessageReceived = System.currentTimeMillis();
 
+                //displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
 
                 Double chargePercent = intent.getDoubleExtra(BluetoothLeService.EXTRA_DATA_CHARGE_PERCENT, 0);
                 Double chargeVolts = intent.getDoubleExtra(BluetoothLeService.EXTRA_DATA_CHARGE_VOLTS, 0);
                 Boolean direction = intent.getBooleanExtra(BluetoothLeService.EXTRA_DATA_DIRECTION, true);
                 Double speed = intent.getDoubleExtra(BluetoothLeService.EXTRA_DATA_SPEED, 0);
-
 
                 displayData(chargePercent, chargeVolts, speed, direction);
             }
@@ -129,6 +138,8 @@ public class XtremeGaugesActivity extends Activity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.i(TAG, "Gauges onCreate");
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gauges);
 
@@ -146,29 +157,85 @@ public class XtremeGaugesActivity extends Activity {
         }
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+
+        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+        if (mBluetoothLeService != null) {
+            final boolean result = mBluetoothLeService.connect(mDeviceAddress);
+            Log.d(TAG, "Gauges Connect request result=" + result);
+        }
+
+        mWatchDogThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    while (mKeepWatchDogTimer) {
+                        Thread.sleep(1000, 0);
+
+                        if (mConnected) {
+                            long currentTime = System.currentTimeMillis();
+                            long deltaSeconds = (currentTime - mLastMessageReceived) / 1000;
+
+                            if (deltaSeconds >= 1)
+                                Log.i(TAG, "deltaSeconds: " + deltaSeconds);
+
+                            if (deltaSeconds >= 5) {
+                                mKeepWatchDogTimer = false;
+
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        finish();
+                                    }
+                                });
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, e.getMessage());
+                }
+            }
+        });
+        mWatchDogThread.start();
+        mLastMessageReceived = System.currentTimeMillis();
     }
 
     @Override
     protected void onResume() {
+        Log.i(TAG, "Gauges onResume");
         super.onResume();
-        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
-        if (mBluetoothLeService != null) {
-            final boolean result = mBluetoothLeService.connect(mDeviceAddress);
-            Log.d(TAG, "Connect request result=" + result);
-        }
+//        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+//        if (mBluetoothLeService != null) {
+//            final boolean result = mBluetoothLeService.connect(mDeviceAddress);
+//            Log.d(TAG, "Connect request result=" + result);
+//        }
     }
 
     @Override
     protected void onPause() {
+        Log.i(TAG, "Gauges onPause");
+
         super.onPause();
-        unregisterReceiver(mGattUpdateReceiver);
+
+//        unregisterReceiver(mGattUpdateReceiver);
     }
 
     @Override
     protected void onDestroy() {
+        Log.i(TAG, "Gauges onDestroy");
+
         super.onDestroy();
+        unregisterReceiver(mGattUpdateReceiver);
+
         unbindService(mServiceConnection);
         mBluetoothLeService = null;
+
+        mKeepWatchDogTimer = false;
+        mWatchDogThread = null;
+
+//        if (mWatchDogThread != null) {
+//            mWatchDogThread.interrupt();
+//            mWatchDogThread = null;
+//        }
     }
 
     @Override

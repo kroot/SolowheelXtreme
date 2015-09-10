@@ -28,6 +28,7 @@ import android.content.pm.PackageManager;
 import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -57,11 +58,13 @@ public class DeviceScanActivity extends ListActivity {
     private String lastMacAddress;
 
     private static final int REQUEST_ENABLE_BT = 1;
-    // Stops scanning after 10 seconds.
-    private static final long SCAN_PERIOD = 30000;
+    // Stops scanning after 5 minutes.
+    private static final long SCAN_PERIOD = 5 * 60 * 1000;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.i(TAG, "DeviceScan onCreate");
+
         super.onCreate(savedInstanceState);
         getActionBar().setTitle(R.string.title_devices);
         mHandler = new Handler();
@@ -120,6 +123,8 @@ public class DeviceScanActivity extends ListActivity {
 
     @Override
     protected void onResume() {
+        Log.i(TAG, "DeviceScan onResume");
+
         super.onResume();
 
         // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
@@ -156,6 +161,8 @@ public class DeviceScanActivity extends ListActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.i(TAG, "DeviceScan onActivityResult");
+
         // User chose not to enable Bluetooth.
         if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
             finish();
@@ -165,9 +172,17 @@ public class DeviceScanActivity extends ListActivity {
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onDestroy() {
+        super.onDestroy();
         scanLeDevice(false);
+    }
+
+    @Override
+    protected void onPause() {
+        Log.i(TAG, "DeviceScan onPause");
+
+        super.onPause();
+//        scanLeDevice(false);
         mLeDeviceListAdapter.clear();
     }
 
@@ -213,7 +228,7 @@ public class DeviceScanActivity extends ListActivity {
     private void scanLeDevice(final boolean enable) {
         if (enable) {
             // Stops scanning after a pre-defined scan period.
-            mHandler.postDelayed(new Runnable() {
+/*            mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     //if (mScanning) {
@@ -222,7 +237,7 @@ public class DeviceScanActivity extends ListActivity {
                         invalidateOptionsMenu();
                    // }
                 }
-            }, SCAN_PERIOD);
+            }, SCAN_PERIOD);*/
 
             mScanning = true;
             mBluetoothAdapter.startLeScan(mLeScanCallback);
@@ -331,11 +346,15 @@ public class DeviceScanActivity extends ListActivity {
                 public void run() {
 
                     if (device != null) {
-
-                        // The only look for Solowheel devices
                         String name = device.getName();
-                        if ((name != null) && name.equals("EXTREME")) {
-                            mLeDeviceListAdapter.addDevice(device);
+
+                        if (name != null) {
+                            Log.i(TAG, "onLeScan device found: " + name);
+
+                            // The only look for Solowheel devices
+                            if (name.equals("EXTREME")) {
+                                mLeDeviceListAdapter.addDevice(device);
+                            }
                         }
                     }
                 }

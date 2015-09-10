@@ -104,6 +104,8 @@ public class BluetoothLeService extends Service {
                 Log.i(TAG, "Disconnected from GATT server.");
                 broadcastUpdate(intentAction);
 
+                SendWearMessage(0.0, 0.0);
+
                 disconnectGoogleClient();
             }
         }
@@ -259,7 +261,7 @@ public class BluetoothLeService extends Service {
                                 MessageApi.SendMessageResult result =
                                         Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), "/solowheelxtreme", message.getBytes()).await();
                             }
-                            Log.i(TAG, "Wear message sent: " + message);
+                            Log.v(TAG, "Wear message sent: " + message);
                         } catch (Exception e) {
                             Log.e(TAG, e.getMessage());
                         }
