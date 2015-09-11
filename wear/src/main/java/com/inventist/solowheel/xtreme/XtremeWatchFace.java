@@ -294,99 +294,98 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
             // Draw the background.
             canvas.drawRect(0, 0, canvas.getWidth(), canvas.getHeight(), mBackgroundPaint);
 
-            // Find the center. Ignore the window insets so that, on round watches with a
-            // "chin", the watch face is centered on the entire screen, not just the usable
-            // portion.
-            float centerX = width / 2f;
-            float centerY = height / 2f;
+            if (isVisible()) {
+                // Find the center. Ignore the window insets so that, on round watches with a
+                // "chin", the watch face is centered on the entire screen, not just the usable
+                // portion.
+                float centerX = width / 2f;
+                float centerY = height / 2f;
 
-            if (mBatteryPercent > 0) {
-                // battery text
-                int percent = mBatteryPercent.intValue();
-                String percentText = String.format("%d", percent) + "%";
-                //canvas.drawText(String.format("%d", percent) + "%", centerX, centerY + (height / 8), mTextPaint);
+                if (mBatteryPercent > 0) {
+                    // battery text
+                    int percent = mBatteryPercent.intValue();
+                    String percentText = String.format("%d", percent) + "%";
+                    //canvas.drawText(String.format("%d", percent) + "%", centerX, centerY + (height / 8), mTextPaint);
 
-                android.graphics.Rect TextBounds = new android.graphics.Rect();
-                mTextBatteryPaint.getTextBounds(percentText, 0, percentText.length(), TextBounds);
-                canvas.drawText
-                        (
-                                percentText,
-                                centerX - (TextBounds.right + TextBounds.left) / 2.0f,
-                                centerY - (TextBounds.bottom + TextBounds.top) / 2.0f + 40,
-                                mTextBatteryPaint
-                        );
+                    android.graphics.Rect TextBounds = new android.graphics.Rect();
+                    mTextBatteryPaint.getTextBounds(percentText, 0, percentText.length(), TextBounds);
+                    canvas.drawText
+                            (
+                                    percentText,
+                                    centerX - (TextBounds.right + TextBounds.left) / 2.0f,
+                                    centerY - (TextBounds.bottom + TextBounds.top) / 2.0f + 40,
+                                    mTextBatteryPaint
+                            );
 
-                // speed
-                mTextSpeedPaint.getTextBounds(mFormattedSpeed, 0, mFormattedSpeed.length(), TextBounds);
-                canvas.drawText
-                        (
-                                mFormattedSpeed,
-                                centerX - (TextBounds.right + TextBounds.left) / 2.0f,
-                                centerY - (TextBounds.bottom + TextBounds.top) / 2.0f - 40,
-                                mTextSpeedPaint
-                        );
+                    // speed
+                    mTextSpeedPaint.getTextBounds(mFormattedSpeed, 0, mFormattedSpeed.length(), TextBounds);
+                    canvas.drawText
+                            (
+                                    mFormattedSpeed,
+                                    centerX - (TextBounds.right + TextBounds.left) / 2.0f,
+                                    centerY - (TextBounds.bottom + TextBounds.top) / 2.0f - 40,
+                                    mTextSpeedPaint
+                            );
 
-                // maintain fixed aspect ratio
-                float gaugeWidth = width;
-                float gaugeHeight = height;
-                if (gaugeHeight > gaugeWidth)
-                    gaugeHeight = gaugeWidth;
-                else if (gaugeWidth > gaugeHeight)
-                    gaugeWidth = gaugeHeight;
+                    // maintain fixed aspect ratio
+                    float gaugeWidth = width;
+                    float gaugeHeight = height;
+                    if (gaugeHeight > gaugeWidth)
+                        gaugeHeight = gaugeWidth;
+                    else if (gaugeWidth > gaugeHeight)
+                        gaugeWidth = gaugeHeight;
 
-                int gaugeWidth2 = (int) gaugeWidth / 2;
-                RectF gaugeRect = new RectF(
-                        centerX - gaugeWidth2, centerY - gaugeWidth2,
-                        centerX + gaugeWidth2, centerY + gaugeWidth2);
+                    int gaugeWidth2 = (int) gaugeWidth / 2;
+                    RectF gaugeRect = new RectF(
+                            centerX - gaugeWidth2, centerY - gaugeWidth2,
+                            centerX + gaugeWidth2, centerY + gaugeWidth2);
 
-                float pad = dpToPixels(20);
-                RectF arcRect = new RectF(gaugeRect.left + pad, gaugeRect.top + pad, gaugeRect.right - pad, gaugeRect.bottom - pad);
+                    float pad = dpToPixels(20);
+                    RectF arcRect = new RectF(gaugeRect.left + pad, gaugeRect.top + pad, gaugeRect.right - pad, gaugeRect.bottom - pad);
 
-                LedSegmentData ledSegmentData = new LedSegmentData(canvas, (int) centerX, (int) centerY, arcRect).invoke();
-                float segmentAngle = ledSegmentData.getSegmentArcSpan();
-                Path ptsSegments = ledSegmentData.getPtsSegments();
-                //float innerRadius = ledSegmentData.getInnerRadius();
+                    LedSegmentData ledSegmentData = new LedSegmentData(canvas, (int) centerX, (int) centerY, arcRect).invoke();
+                    float segmentAngle = ledSegmentData.getSegmentArcSpan();
+                    Path ptsSegments = ledSegmentData.getPtsSegments();
+                    //float innerRadius = ledSegmentData.getInnerRadius();
 
-                DrawLedSegments(canvas, (int) centerX, (int) centerY, ptsSegments, segmentAngle);
-            }
-            else if (!isInAmbientMode())
-            {
+                    DrawLedSegments(canvas, (int) centerX, (int) centerY, ptsSegments, segmentAngle);
+                } else if (!isInAmbientMode()) {
                 /* Scale loaded background image (more efficient) if surface dimensions change. */
-                float scale = ((float) width) / (float) mBackgroundBitmap.getWidth();
+                    float scale = ((float) width) / (float) mBackgroundBitmap.getWidth();
 
-                mBackgroundBitmap = Bitmap.createScaledBitmap(mBackgroundBitmap,
-                        (int) (mBackgroundBitmap.getWidth() * scale),
-                        (int) (mBackgroundBitmap.getHeight() * scale), true);
+                    mBackgroundBitmap = Bitmap.createScaledBitmap(mBackgroundBitmap,
+                            (int) (mBackgroundBitmap.getWidth() * scale),
+                            (int) (mBackgroundBitmap.getHeight() * scale), true);
 
-                canvas.drawBitmap(mBackgroundBitmap, 0, 0, mBackgroundPaint);
-            }
+                    canvas.drawBitmap(mBackgroundBitmap, 0, 0, mBackgroundPaint);
+                }
 
                         /*
              * Draw ticks. Usually you will want to bake this directly into the photo, but in
              * cases where you want to allow users to select their own photos, this dynamically
              * creates them on top of the photo.
              */
-            float innerTickRadius = centerX - 10;
-            float outerTickRadius = centerX;
-            for (int tickIndex = 0; tickIndex < 12; tickIndex++) {
-                float tickRot = (float) (tickIndex * Math.PI * 2 / 12);
-                float innerX = (float) Math.sin(tickRot) * innerTickRadius;
-                float innerY = (float) -Math.cos(tickRot) * innerTickRadius;
-                float outerX = (float) Math.sin(tickRot) * outerTickRadius;
-                float outerY = (float) -Math.cos(tickRot) * outerTickRadius;
-                canvas.drawLine(centerX + innerX, centerY + innerY,
-                        centerX + outerX, centerY + outerY, mMinuteHandPaint);
-            }
+                float innerTickRadius = centerX - 10;
+                float outerTickRadius = centerX;
+                for (int tickIndex = 0; tickIndex < 12; tickIndex++) {
+                    float tickRot = (float) (tickIndex * Math.PI * 2 / 12);
+                    float innerX = (float) Math.sin(tickRot) * innerTickRadius;
+                    float innerY = (float) -Math.cos(tickRot) * innerTickRadius;
+                    float outerX = (float) Math.sin(tickRot) * outerTickRadius;
+                    float outerY = (float) -Math.cos(tickRot) * outerTickRadius;
+                    canvas.drawLine(centerX + innerX, centerY + innerY,
+                            centerX + outerX, centerY + outerY, mMinuteHandPaint);
+                }
 
-            // hands
-            float secRot = mTime.second / 30f * (float) Math.PI;
-            int minutes = mTime.minute;
-            float minRot = minutes / 30f * (float) Math.PI;
-            float hrRot = ((mTime.hour + (minutes / 60f)) / 6f) * (float) Math.PI;
+                // hands
+                float secRot = mTime.second / 30f * (float) Math.PI;
+                int minutes = mTime.minute;
+                float minRot = minutes / 30f * (float) Math.PI;
+                float hrRot = ((mTime.hour + (minutes / 60f)) / 6f) * (float) Math.PI;
 
-            float secLength = centerX - 20;
-            float minLength = centerX - 40;
-            float hrLength = centerX - 80;
+                float secLength = centerX - 20;
+                float minLength = centerX - 40;
+                float hrLength = centerX - 80;
 
 /*            if (!mAmbient) {
                 float secX = (float) Math.sin(secRot) * secLength;
@@ -394,13 +393,14 @@ public class XtremeWatchFace extends CanvasWatchFaceService {
                 canvas.drawLine(centerX, centerY, centerX + secX, centerY + secY, mHandPaint);
             }*/
 
-            float minX = (float) Math.sin(minRot) * minLength;
-            float minY = (float) -Math.cos(minRot) * minLength;
-            canvas.drawLine(centerX, centerY, centerX + minX, centerY + minY, mMinuteHandPaint);
+                float minX = (float) Math.sin(minRot) * minLength;
+                float minY = (float) -Math.cos(minRot) * minLength;
+                canvas.drawLine(centerX, centerY, centerX + minX, centerY + minY, mMinuteHandPaint);
 
-            float hrX = (float) Math.sin(hrRot) * hrLength;
-            float hrY = (float) -Math.cos(hrRot) * hrLength;
-            canvas.drawLine(centerX, centerY, centerX + hrX, centerY + hrY, mHourHandPaint);
+                float hrX = (float) Math.sin(hrRot) * hrLength;
+                float hrY = (float) -Math.cos(hrRot) * hrLength;
+                canvas.drawLine(centerX, centerY, centerX + hrX, centerY + hrY, mHourHandPaint);
+            }
         }
 
         @Override

@@ -26,6 +26,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.text.format.Time;
@@ -260,7 +261,14 @@ public class XtremeGaugesActivity extends Activity {
             case R.id.menu_disconnect:
                // clearMacAddress(mDeviceAddress);
                 mBluetoothLeService.disconnect();
+
+                // if the user hits disconnect, then clear the mac address.
+                SharedPreferences settings = getSharedPreferences(DeviceScanActivity.SHARED_PREF_NAME, 0);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putString(DeviceScanActivity.LAST_MAC_ADDRESS, "");
+                editor.commit();
                 return true;
+
             case android.R.id.home:
                // clearMacAddress(mDeviceAddress);
                 onBackPressed();

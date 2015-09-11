@@ -87,21 +87,27 @@ public class BluetoothLeService extends Service {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             String intentAction;
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
+            if (mConnectionState == BluetoothProfile.STATE_CONNECTING &&
+                    newState == BluetoothProfile.STATE_CONNECTED)
+            {
+                Log.i(TAG, "Connected to GATT server.");
+
                 intentAction = ACTION_GATT_CONNECTED;
                 mConnectionState = STATE_CONNECTED;
                 broadcastUpdate(intentAction);
-                Log.i(TAG, "Connected to GATT server.");
                 // Attempts to discover services after successful connection.
                 Log.i(TAG, "Attempting to start service discovery:" +
                         mBluetoothGatt.discoverServices());
 
                 initGoogleApiClient();
+            }
+            else if (mConnectionState == BluetoothProfile.STATE_CONNECTED &&
+                    newState == BluetoothProfile.STATE_DISCONNECTED)
+            {
+                Log.i(TAG, "Disconnected from GATT server.");
 
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 intentAction = ACTION_GATT_DISCONNECTED;
                 mConnectionState = STATE_DISCONNECTED;
-                Log.i(TAG, "Disconnected from GATT server.");
                 broadcastUpdate(intentAction);
 
                 SendWearMessage(0.0, 0.0);
@@ -113,6 +119,8 @@ public class BluetoothLeService extends Service {
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
+                Log.w(TAG, "GATT_SUCCESS");
+
                 broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
             } else {
                 Log.w(TAG, "onServicesDiscovered received: " + status);
