@@ -72,3 +72,4 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 .idea/workspace.xml
+.idea/tasks.xml

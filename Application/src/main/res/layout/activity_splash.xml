@@ -6,7 +6,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.inventist.xtreme.SplashActivity"
+    tools:context="com.inventist.solowheel.xtreme.SplashActivity"
     android:visibility="gone"
     android:id="@+id/splash_activity">
 

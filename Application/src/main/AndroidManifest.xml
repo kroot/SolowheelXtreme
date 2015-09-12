@@ -15,9 +15,9 @@
  limitations under the License.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.inventist.xtreme"
-    android:versionCode="5"
-    android:versionName="1.4" >
+    package="com.inventist.solowheel.xtreme"
+    android:versionCode="1"
+    android:versionName="1.0" >
 
     <!-- Min/target SDK versions (<uses-sdk>) managed by build.gradle -->
 
@@ -34,33 +34,38 @@
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <uses-permission android:name="com.google.android.permission.PROVIDE_BACKGROUND" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:icon="@drawable/sw_logo"
         android:label="@string/app_name"
         android:theme="@android:style/Theme.Holo.Light" >
         <activity
-            android:name=".DeviceScanActivity"
+            android:name="com.inventist.solowheel.xtreme.DeviceScanActivity"
             android:label="@string/app_name"
             android:screenOrientation="portrait" >
 
         </activity>
         <activity
-            android:name=".XtremeGaugesActivity"
+            android:name="com.inventist.solowheel.xtreme.XtremeGaugesActivity"
             android:screenOrientation="portrait" />
-
         <service
-            android:name=".BluetoothLeService"
+            android:name="com.inventist.solowheel.xtreme.BluetoothLeService"
             android:enabled="true" />
 
         <activity
-            android:name=".SplashActivity"
+            android:name="com.inventist.solowheel.xtreme.SplashActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <meta-data
+                android:name="com.google.android.gms.version"
+                android:value="@integer/google_play_services_version" />
         </activity>
     </application>
 

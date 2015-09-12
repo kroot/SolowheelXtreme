@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.inventist.xtreme;
+package com.inventist.solowheel.xtreme;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
@@ -25,14 +26,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.text.format.Time;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.inventist.solowheel.xtreme.R;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -53,13 +57,10 @@ public class XtremeGaugesActivity extends Activity {
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
 
    // private TextView mConnectionState;
-    private TextView mDataField;
     private String mDeviceName;
     private String mDeviceAddress;
-    //private ExpandableListView mGattServicesList;
     private BluetoothLeService mBluetoothLeService;
-    private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics =
-            new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
+    private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics = new ArrayList<>();
     private boolean mConnected = false;
     private BluetoothGattCharacteristic mNotifyCharacteristic;
 
@@ -67,12 +68,17 @@ public class XtremeGaugesActivity extends Activity {
     private final String LIST_UUID = "UUID";
 
     private Double previousVoltage = 0d;
+    private long mLastMessageReceived;
+    private Thread mWatchDogThread;
+    private boolean mKeepWatchDogTimer = true;
 
     // Code to manage Service lifecycle.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
 
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder service) {
+            Log.i(TAG, "Gauges onServiceConnected");
+
             mBluetoothLeService = ((BluetoothLeService.LocalBinder) service).getService();
             if (!mBluetoothLeService.initialize()) {
                 Log.e(TAG, "Unable to initialize Bluetooth");
@@ -84,6 +90,7 @@ public class XtremeGaugesActivity extends Activity {
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
+            Log.i(TAG, "Gauges onServiceDisconnected");
             mBluetoothLeService = null;
         }
     };
@@ -102,37 +109,38 @@ public class XtremeGaugesActivity extends Activity {
                 mConnected = true;
                 updateConnectionState(R.string.connected);
                 invalidateOptionsMenu();
+                mLastMessageReceived = System.currentTimeMillis();
+
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
                 mConnected = false;
                 updateConnectionState(R.string.disconnected);
                 invalidateOptionsMenu();
-                //clearUI();
 
-                finish();
+                finish(); // return to scanning activity
 
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 // Show all the supported services and characteristics on the user interface.
                 displayGattServices(mBluetoothLeService.getSupportedGattServices());
 
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
-                //displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+                mLastMessageReceived = System.currentTimeMillis();
 
+                //displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
 
                 Double chargePercent = intent.getDoubleExtra(BluetoothLeService.EXTRA_DATA_CHARGE_PERCENT, 0);
                 Double chargeVolts = intent.getDoubleExtra(BluetoothLeService.EXTRA_DATA_CHARGE_VOLTS, 0);
                 Boolean direction = intent.getBooleanExtra(BluetoothLeService.EXTRA_DATA_DIRECTION, true);
                 Double speed = intent.getDoubleExtra(BluetoothLeService.EXTRA_DATA_SPEED, 0);
 
-
                 displayData(chargePercent, chargeVolts, speed, direction);
             }
         }
     };
 
-
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.i(TAG, "Gauges onCreate");
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gauges);
 
@@ -143,34 +151,92 @@ public class XtremeGaugesActivity extends Activity {
         mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
         mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
 
-        getActionBar().setTitle(mDeviceAddress);
-        getActionBar().setDisplayHomeAsUpEnabled(true);
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) {
+            actionBar.setTitle(mDeviceAddress);
+            actionBar.setDisplayHomeAsUpEnabled(true);
+        }
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
 
+        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+        if (mBluetoothLeService != null) {
+            final boolean result = mBluetoothLeService.connect(mDeviceAddress);
+            Log.d(TAG, "Gauges Connect request result=" + result);
+        }
+
+        mWatchDogThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    while (mKeepWatchDogTimer) {
+                        Thread.sleep(1000, 0);
+
+                        if (mConnected) {
+                            long currentTime = System.currentTimeMillis();
+                            long deltaSeconds = (currentTime - mLastMessageReceived) / 1000;
+
+                            if (deltaSeconds >= 1)
+                                Log.i(TAG, "deltaSeconds: " + deltaSeconds);
+
+                            if (deltaSeconds >= 5) {
+                                mKeepWatchDogTimer = false;
+
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        finish();
+                                    }
+                                });
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, e.getMessage());
+                }
+            }
+        });
+        mWatchDogThread.start();
+        mLastMessageReceived = System.currentTimeMillis();
     }
 
     @Override
     protected void onResume() {
+        Log.i(TAG, "Gauges onResume");
         super.onResume();
-        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
-        if (mBluetoothLeService != null) {
-            final boolean result = mBluetoothLeService.connect(mDeviceAddress);
-            Log.d(TAG, "Connect request result=" + result);
-        }
+//        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+//        if (mBluetoothLeService != null) {
+//            final boolean result = mBluetoothLeService.connect(mDeviceAddress);
+//            Log.d(TAG, "Connect request result=" + result);
+//        }
     }
 
     @Override
     protected void onPause() {
+        Log.i(TAG, "Gauges onPause");
+
         super.onPause();
-        unregisterReceiver(mGattUpdateReceiver);
+
+//        unregisterReceiver(mGattUpdateReceiver);
     }
 
     @Override
     protected void onDestroy() {
+        Log.i(TAG, "Gauges onDestroy");
+
         super.onDestroy();
+        unregisterReceiver(mGattUpdateReceiver);
+
         unbindService(mServiceConnection);
         mBluetoothLeService = null;
+
+        mKeepWatchDogTimer = false;
+        mWatchDogThread = null;
+
+//        if (mWatchDogThread != null) {
+//            mWatchDogThread.interrupt();
+//            mWatchDogThread = null;
+//        }
     }
 
     @Override
@@ -195,7 +261,14 @@ public class XtremeGaugesActivity extends Activity {
             case R.id.menu_disconnect:
                // clearMacAddress(mDeviceAddress);
                 mBluetoothLeService.disconnect();
+
+                // if the user hits disconnect, then clear the mac address.
+                SharedPreferences settings = getSharedPreferences(DeviceScanActivity.SHARED_PREF_NAME, 0);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putString(DeviceScanActivity.LAST_MAC_ADDRESS, "");
+                editor.commit();
                 return true;
+
             case android.R.id.home:
                // clearMacAddress(mDeviceAddress);
                 onBackPressed();
@@ -213,7 +286,7 @@ public class XtremeGaugesActivity extends Activity {
         });
     }
 
-    private void displayData(Double chargePercent, Double chargeVolts, Double speed, boolean forward) {
+    private void displayData(final Double chargePercent, final Double chargeVolts, final Double speed, final boolean forward) {
 
         if ((chargePercent != null) && (speed != null)){
             BatteryGauge f = (BatteryGauge) findViewById(R.id.reading1);
@@ -228,15 +301,17 @@ public class XtremeGaugesActivity extends Activity {
             TextView tvSpeed = (TextView) findViewById(R.id.tvSpeed);
             TextView tvSpeedUnits = (TextView) findViewById(R.id.tvSpeedUnits);
 
+            //String formattedSpeed;
             if (useMph) {
                 tvSpeed.setText(String.format("%.1f", speed));
                 tvSpeedUnits.setText("MPH");
+//                formattedSpeed = String.format("%.1f", speed) + " MPH";
             }
             else {
                 tvSpeed.setText(String.format("%.1f", speed * 1.6));
                 tvSpeedUnits.setText("KPH");
+//                formattedSpeed = String.format("%.1f", speed * 1.6) + " KPH";
             }
-
 
             findViewById(R.id.green_arrow_up).setVisibility(chargeVolts > previousVoltage ? View.VISIBLE : View.GONE);
             findViewById(R.id.red_arrow_down).setVisibility(chargeVolts < previousVoltage ? View.VISIBLE : View.GONE);
@@ -248,14 +323,14 @@ public class XtremeGaugesActivity extends Activity {
 
     private void displayGattServices(List<BluetoothGattService> gattServices) {
         if (gattServices == null) return;
-        String uuidService = null;
-        String uuidCharacteristic = null;
+        String uuidService;
+        String uuidCharacteristic;
         String unknownServiceString = getResources().getString(R.string.unknown_service);
         String unknownCharaString = getResources().getString(R.string.unknown_characteristic);
         ArrayList<HashMap<String, String>> gattServiceData = new ArrayList<HashMap<String, String>>();
         ArrayList<ArrayList<HashMap<String, String>>> gattCharacteristicData
                 = new ArrayList<ArrayList<HashMap<String, String>>>();
-        mGattCharacteristics = new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
+        mGattCharacteristics = new ArrayList<>();
 
         // Loops through available GATT Services.
         for (BluetoothGattService gattService : gattServices) {
@@ -270,12 +345,10 @@ public class XtremeGaugesActivity extends Activity {
                 currentServiceData.put(LIST_UUID, uuidService);
                 gattServiceData.add(currentServiceData);
 
-                ArrayList<HashMap<String, String>> gattCharacteristicGroupData =
-                        new ArrayList<HashMap<String, String>>();
+                ArrayList<HashMap<String, String>> gattCharacteristicGroupData = new ArrayList<>();
                 List<BluetoothGattCharacteristic> gattCharacteristics =
                         gattService.getCharacteristics();
-                ArrayList<BluetoothGattCharacteristic> charas =
-                        new ArrayList<BluetoothGattCharacteristic>();
+                ArrayList<BluetoothGattCharacteristic> charas = new ArrayList<>();
 
                 // Loops through available Characteristics.
                 for (BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {

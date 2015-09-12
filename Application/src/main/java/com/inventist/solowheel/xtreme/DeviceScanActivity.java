@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.inventist.xtreme;
+package com.inventist.solowheel.xtreme;
 
 import android.app.Activity;
 import android.app.ListActivity;
@@ -28,6 +28,7 @@ import android.content.pm.PackageManager;
 import android.database.DataSetObserver;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -55,11 +56,13 @@ public class DeviceScanActivity extends ListActivity {
     private String lastMacAddress;
 
     private static final int REQUEST_ENABLE_BT = 1;
-    // Stops scanning after 10 seconds.
-    private static final long SCAN_PERIOD = 30000;
+    // Stops scanning after 5 minutes.
+    private static final long SCAN_PERIOD = 5 * 60 * 1000;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.i(TAG, "DeviceScan onCreate");
+
         super.onCreate(savedInstanceState);
         getActionBar().setTitle(R.string.title_devices);
         mHandler = new Handler();
@@ -111,6 +114,10 @@ public class DeviceScanActivity extends ListActivity {
             case R.id.menu_stop:
                 mLeDeviceListAdapter.clear();
                 scanLeDevice(false);
+
+                // if user hits stop, clear the last mac address.
+                lastMacAddress = "0";
+                saveMacAddress("1");
                 break;
         }
         return true;
@@ -118,6 +125,8 @@ public class DeviceScanActivity extends ListActivity {
 
     @Override
     protected void onResume() {
+        Log.i(TAG, "DeviceScan onResume");
+
         super.onResume();
 
         // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
@@ -138,14 +147,6 @@ public class DeviceScanActivity extends ListActivity {
         mLeDeviceListAdapter.registerDataSetObserver(new DataSetObserver() {
             @Override
             public void onChanged() {
-                int numDevices = mLeDeviceListAdapter.getCount();
-                if (numDevices > 0) {
-                    for (int i = 0; i < numDevices; i++) {
-                        BluetoothDevice device = mLeDeviceListAdapter.getDevice(i);
-                        if (device.getAddress().equals(lastMacAddress))
-                            displayGauges(i);
-                    }
-                }
                 super.onChanged();
             }
         });
@@ -154,6 +155,8 @@ public class DeviceScanActivity extends ListActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.i(TAG, "DeviceScan onActivityResult");
+
         // User chose not to enable Bluetooth.
         if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
             finish();
@@ -163,9 +166,17 @@ public class DeviceScanActivity extends ListActivity {
     }
 
     @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onDestroy() {
+        super.onDestroy();
         scanLeDevice(false);
+    }
+
+    @Override
+    protected void onPause() {
+        Log.i(TAG, "DeviceScan onPause");
+
+        super.onPause();
+//        scanLeDevice(false);
         mLeDeviceListAdapter.clear();
     }
 
@@ -185,18 +196,19 @@ public class DeviceScanActivity extends ListActivity {
 
         if (!newMacAddress.equals(lastMacAddress)) {
             lastMacAddress = newMacAddress;
-            SaveMacAddress(lastMacAddress);
+            saveMacAddress(lastMacAddress);
         }
 
         if (mScanning) {
-            mBluetoothAdapter.stopLeScan(mLeScanCallback);
-            mScanning = false;
+            scanLeDevice(false);
+//            mBluetoothAdapter.stopLeScan(mLeScanCallback);
+//            mScanning = false;
         }
         //mLeDeviceListAdapter.clear();
         startActivity(intent);
     }
 
-    public void SaveMacAddress(String macAddress) {
+    public void saveMacAddress(String macAddress) {
         SharedPreferences settings = getSharedPreferences(SHARED_PREF_NAME, 0);
         SharedPreferences.Editor editor = settings.edit();
         editor.putString(LAST_MAC_ADDRESS, macAddress);
@@ -208,10 +220,25 @@ public class DeviceScanActivity extends ListActivity {
         return settings.getString(LAST_MAC_ADDRESS, "");
     }
 
+    private boolean checkLastMacAddress() {
+        int numDevices = mLeDeviceListAdapter.getCount();
+        for (int i = 0; i < numDevices; i++) {
+            BluetoothDevice device = mLeDeviceListAdapter.getDevice(i);
+            if (device.getAddress().equals(lastMacAddress))
+            {
+                displayGauges(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void scanLeDevice(final boolean enable) {
-        if (enable) {
+        Log.i(TAG, "scanLeDevice: " + enable);
+
+        if (enable && mBluetoothAdapter != null) {
             // Stops scanning after a pre-defined scan period.
-            mHandler.postDelayed(new Runnable() {
+/*            mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     //if (mScanning) {
@@ -220,13 +247,14 @@ public class DeviceScanActivity extends ListActivity {
                         invalidateOptionsMenu();
                    // }
                 }
-            }, SCAN_PERIOD);
+            }, SCAN_PERIOD);*/
 
             mScanning = true;
             mBluetoothAdapter.startLeScan(mLeScanCallback);
         } else {
             mScanning = false;
             mBluetoothAdapter.stopLeScan(mLeScanCallback);
+            mLeDeviceListAdapter.clear();
         }
         invalidateOptionsMenu();
     }
@@ -328,12 +356,29 @@ public class DeviceScanActivity extends ListActivity {
                 @Override
                 public void run() {
 
-                    if (device != null) {
-
-                        // The only look for Solowheel devices
+                    if (device != null && mScanning == true) {
                         String name = device.getName();
-                        if ((name != null) && name.equals("EXTREME")) {
-                            mLeDeviceListAdapter.addDevice(device);
+
+                        if (name != null) {
+                            Log.i(TAG, "onLeScan device found: " + name);
+
+                            // only look for Solowheel devices
+                            if (name.equals("EXTREME"))
+                            {
+                                if (checkLastMacAddress()) {
+
+                                    return;
+                                }
+
+                                boolean found = false;
+                                for (BluetoothDevice dev : mLeDeviceListAdapter.mLeDevices)
+                                {
+                                    found = true;
+                                    break;
+                                }
+                                if (!found)
+                                    mLeDeviceListAdapter.addDevice(device);
+                            }
                         }
                     }
                 }

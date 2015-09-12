@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.inventist.xtreme;
+package com.inventist.solowheel.xtreme;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -22,19 +22,26 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.wearable.Node;
+import com.google.android.gms.wearable.NodeApi;
+import com.google.android.gms.wearable.Wearable;
+
 import java.util.List;
-import java.util.UUID;
+import java.util.Locale;
 
 /**
  * Service for managing connection and data communication with a GATT server hosted on a
@@ -48,29 +55,31 @@ public class BluetoothLeService extends Service {
     private String mBluetoothDeviceAddress;
     private BluetoothGatt mBluetoothGatt;
     private int mConnectionState = STATE_DISCONNECTED;
+    private long mLastWatchUpdateTime = 0;
+    private GoogleApiClient mGoogleApiClient;
 
     private static final int STATE_DISCONNECTED = 0;
     private static final int STATE_CONNECTING = 1;
     private static final int STATE_CONNECTED = 2;
 
     public final static String ACTION_GATT_CONNECTED =
-            "com.inventist.xtreme.ACTION_GATT_CONNECTED";
+            "com.inventist.solowheel.xtreme.ACTION_GATT_CONNECTED";
     public final static String ACTION_GATT_DISCONNECTED =
-            "com.inventist.xtreme.ACTION_GATT_DISCONNECTED";
+            "com.inventist.solowheel.xtreme.ACTION_GATT_DISCONNECTED";
     public final static String ACTION_GATT_SERVICES_DISCOVERED =
-            "com.inventist.xtreme.ACTION_GATT_SERVICES_DISCOVERED";
+            "com.inventist.solowheel.xtreme.ACTION_GATT_SERVICES_DISCOVERED";
     public final static String ACTION_DATA_AVAILABLE =
-            "com.inventist.xtreme.ACTION_DATA_AVAILABLE";
+            "com.inventist.solowheel.xtreme.ACTION_DATA_AVAILABLE";
     public final static String EXTRA_DATA =
-            "com.inventist.xtreme.EXTRA_DATA";
+            "com.inventist.solowheel.xtreme.EXTRA_DATA";
     public final static String EXTRA_DATA_SPEED =
-            "com.inventist.xtreme.EXTRA_DATA_SPEED";
+            "com.inventist.solowheel.xtreme.EXTRA_DATA_SPEED";
     public final static String EXTRA_DATA_CHARGE_PERCENT =
-            "com.inventist.xtreme.EXTRA_DATA_CHARGE_PERCENT";
+            "com.inventist.solowheel.xtreme.EXTRA_DATA_CHARGE_PERCENT";
     public final static String EXTRA_DATA_CHARGE_VOLTS =
-            "com.inventist.xtreme.EXTRA_DATA_CHARGE_VOLTS";
+            "com.inventist.solowheel.xtreme.EXTRA_DATA_CHARGE_VOLTS";
     public final static String EXTRA_DATA_DIRECTION =
-            "com.inventist.xtreme.EXTRA_DATA_DIRECTION";
+            "com.inventist.solowheel.xtreme.EXTRA_DATA_DIRECTION";
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
@@ -78,26 +87,40 @@ public class BluetoothLeService extends Service {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             String intentAction;
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
+            if (mConnectionState == BluetoothProfile.STATE_CONNECTING &&
+                    newState == BluetoothProfile.STATE_CONNECTED)
+            {
+                Log.i(TAG, "Connected to GATT server.");
+
                 intentAction = ACTION_GATT_CONNECTED;
                 mConnectionState = STATE_CONNECTED;
                 broadcastUpdate(intentAction);
-                Log.i(TAG, "Connected to GATT server.");
                 // Attempts to discover services after successful connection.
                 Log.i(TAG, "Attempting to start service discovery:" +
                         mBluetoothGatt.discoverServices());
 
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                initGoogleApiClient();
+            }
+            else if (mConnectionState == BluetoothProfile.STATE_CONNECTED &&
+                    newState == BluetoothProfile.STATE_DISCONNECTED)
+            {
+                Log.i(TAG, "Disconnected from GATT server.");
+
                 intentAction = ACTION_GATT_DISCONNECTED;
                 mConnectionState = STATE_DISCONNECTED;
-                Log.i(TAG, "Disconnected from GATT server.");
                 broadcastUpdate(intentAction);
+
+                SendWearMessage(0.0, 0.0);
+
+                disconnectGoogleClient();
             }
         }
 
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
+                Log.w(TAG, "GATT_SUCCESS");
+
                 broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
             } else {
                 Log.w(TAG, "onServicesDiscovered received: " + status);
@@ -212,9 +235,47 @@ public class BluetoothLeService extends Service {
                         intent.putExtra(EXTRA_DATA_SPEED, new Double(speedMPH));
 
                         sendBroadcast(intent);
+
+                        // Wear support
+                        SendWearMessage(speedMPH, percent);
                         break;
                     }
                 }
+            }
+        }
+    }
+
+    private void SendWearMessage(Double speedMPH, Double percent) {
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+            long now = System.currentTimeMillis();
+            if (now - mLastWatchUpdateTime > 1000) {
+                mLastWatchUpdateTime = now;
+
+                Locale loc = this.getResources().getConfiguration().locale;
+                boolean useMph = (loc.getISO3Country().equalsIgnoreCase("usa") || loc.getISO3Country().equalsIgnoreCase("mmr"));
+
+                final String message = String.format(
+                        "%d", percent.intValue()) + "," +
+                        String.format("%.1f", speedMPH) + "," +
+                        (useMph ? "MPH" : "KPH");
+
+                Thread t = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
+
+                            for (Node node : nodes.getNodes()) {
+                                MessageApi.SendMessageResult result =
+                                        Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), "/solowheelxtreme", message.getBytes()).await();
+                            }
+                            Log.v(TAG, "Wear message sent: " + message);
+                        } catch (Exception e) {
+                            Log.e(TAG, e.getMessage());
+                        }
+                    }
+                });
+                t.start();
             }
         }
     }
@@ -332,6 +393,60 @@ public class BluetoothLeService extends Service {
         }
         mBluetoothGatt.close();
         mBluetoothGatt = null;
+    }
+
+    private void disconnectGoogleClient()
+    {
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+            final String message = "0,0, ";
+            NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
+
+            for (Node node : nodes.getNodes()) {
+                MessageApi.SendMessageResult result =
+                        Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), "/solowheelxtreme", message.getBytes()).await();
+            }
+
+            mGoogleApiClient.disconnect();
+        }
+
+        mGoogleApiClient = null;
+    }
+
+    private void initGoogleApiClient() {
+        if (mGoogleApiClient != null && mGoogleApiClient.isConnected())
+        {
+            Log.i(TAG, "Google API client already connected");
+        }
+        else
+        {
+            if (mGoogleApiClient == null)
+            {
+                mGoogleApiClient = new GoogleApiClient.Builder(this)
+                        .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+                            @Override
+                            public void onConnected(Bundle bundle) {
+                                Log.i(TAG, "Google API client connected");
+
+                            }
+
+                            @Override
+                            public void onConnectionSuspended(int i) {
+
+                            }
+                        })
+                        .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
+                            @Override
+                            public void onConnectionFailed(ConnectionResult connectionResult) {
+                                Log.i(TAG, "Google API onConnectionFailed: " + connectionResult);
+                            }
+                        })
+                        .addApi(Wearable.API)
+                        .build();
+            }
+
+            if (!mGoogleApiClient.isConnected())
+                mGoogleApiClient.connect();
+        }
     }
 
     /**
