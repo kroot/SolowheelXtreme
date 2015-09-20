@@ -16,16 +16,28 @@
 
 package com.inventist.solowheel.xtreme;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ListActivity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
+import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanFilter;
+import android.bluetooth.le.ScanResult;
+import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.DataSetObserver;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -40,17 +52,28 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Activity for scanning and displaying available Bluetooth LE devices.
  */
+@TargetApi(21)
 public class DeviceScanActivity extends ListActivity {
-    private final static String TAG = "solowheel";
+    private final static String TAG = "XtremeScan";
+
     public final static String SHARED_PREF_NAME = "solowheelxtreme";
     public final static String LAST_MAC_ADDRESS = "lastmac";
 
     private LeDeviceListAdapter mLeDeviceListAdapter;
     private BluetoothAdapter mBluetoothAdapter;
+
+    // Android 5.0 or above BLE support only (not backwards compatible)
+    private ScanSettings settings;
+    private BluetoothLeScanner mLeScanner50;
+    private List<ScanFilter> filters;
+    private BluetoothGatt mGatt;
+    private ScanCallback mScanCallback50;
+
     private boolean mScanning;
     private Handler mHandler;
     private String lastMacAddress;
@@ -85,6 +108,68 @@ public class DeviceScanActivity extends ListActivity {
             Toast.makeText(this, R.string.error_bluetooth_not_supported, Toast.LENGTH_SHORT).show();
             finish();
             return;
+        }
+
+        // The newer BLE APIs are only supported in 5.0 or above.
+        if (Build.VERSION.SDK_INT >= 21 && mScanCallback50 == null) {
+            mScanCallback50 = new ScanCallback() {
+
+                @Override
+                public void onScanResult(int callbackType, ScanResult result) {
+                    Log.i("callbackType", String.valueOf(callbackType));
+                    Log.i("result", result.toString());
+
+                    if (mScanning) {
+                        BluetoothDevice btDevice = result.getDevice();
+
+
+                        //connectToDevice50(btDevice);
+
+
+                        String name = btDevice.getName();
+
+                        if (name != null) {
+                            Log.v(TAG, "onLeScan device found: " + name);
+
+                            // only look for Solowheel devices
+                            if (name.equals("EXTREME")) {
+                                // Log.i(TAG, "rssi = " + rssi);
+
+                                boolean found = false;
+                                for (BluetoothDevice dev : mLeDeviceListAdapter.mLeDevices) {
+                                    found = true;
+                                    break;
+                                }
+                                if (!found) {
+                                    Log.v(TAG, "XTREME found");
+                                    mLeDeviceListAdapter.addDevice(btDevice);
+                                }
+
+                                int devNum = checkLastMacAddress();
+                                if (devNum != -1) {
+                                    Log.v(TAG, "Last Address! Launching gauges");
+
+                                    displayGauges(devNum);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                @Override
+                public void onBatchScanResults(List<ScanResult> results) {
+                    for (ScanResult sr : results) {
+                        Log.i("ScanResult - Results", sr.toString());
+                    }
+                }
+
+                @Override
+                public void onScanFailed(int errorCode) {
+                    Log.e("Scan Failed", "Error Code: " + errorCode);
+                }
+            };
+
         }
     }
 
@@ -131,12 +216,29 @@ public class DeviceScanActivity extends ListActivity {
 
         // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
         // fire an intent to display a dialog asking the user to grant permission to enable it.
-        if (!mBluetoothAdapter.isEnabled()) {
-            if (!mBluetoothAdapter.isEnabled()) {
-                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        } else {
+            if (Build.VERSION.SDK_INT >= 21) {
+                mLeScanner50 = mBluetoothAdapter.getBluetoothLeScanner();
+                settings = new ScanSettings.Builder()
+                        .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                        .build();
+                filters = new ArrayList<ScanFilter>();
             }
+            scanLeDevice(true);
         }
+
+
+        // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
+        // fire an intent to display a dialog asking the user to grant permission to enable it.
+//        if (!mBluetoothAdapter.isEnabled()) {
+//            if (!mBluetoothAdapter.isEnabled()) {
+//                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+//                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+//            }
+//        }
 
         // Initializes list view adapter.
         mLeDeviceListAdapter = new LeDeviceListAdapter();
@@ -150,7 +252,7 @@ public class DeviceScanActivity extends ListActivity {
                 super.onChanged();
             }
         });
-        scanLeDevice(true);
+//        scanLeDevice(true);
     }
 
     @Override
@@ -169,6 +271,11 @@ public class DeviceScanActivity extends ListActivity {
     protected void onDestroy() {
         super.onDestroy();
         scanLeDevice(false);
+
+        if (mGatt != null) {
+            mGatt.close();
+            mGatt = null;
+        }
     }
 
     @Override
@@ -177,17 +284,30 @@ public class DeviceScanActivity extends ListActivity {
 
         super.onPause();
 //        scanLeDevice(false);
-        mLeDeviceListAdapter.clear();
     }
 
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
+//        if (mScanning) {
+//            scanLeDevice(false);
+////            mBluetoothAdapter.stopLeScan(mLeScanCallback);
+////            mScanning = false;
+//        }
         displayGauges(position);
     }
 
     private void displayGauges(int position) {
         final BluetoothDevice device = mLeDeviceListAdapter.getDevice(position);
         if (device == null) return;
+
+        scanLeDevice(false);
+
+//        if (mScanning) {
+//            scanLeDevice(false);
+////            mBluetoothAdapter.stopLeScan(mLeScanCallback);
+////            mScanning = false;
+//        }
+        //mLeDeviceListAdapter.clear();
 
         final String newMacAddress = device.getAddress();
         final Intent intent = new Intent(this, XtremeGaugesActivity.class);
@@ -199,11 +319,11 @@ public class DeviceScanActivity extends ListActivity {
             saveMacAddress(lastMacAddress);
         }
 
-        if (mScanning) {
-            scanLeDevice(false);
-//            mBluetoothAdapter.stopLeScan(mLeScanCallback);
-//            mScanning = false;
-        }
+//        if (mScanning) {
+//            scanLeDevice(false);
+////            mBluetoothAdapter.stopLeScan(mLeScanCallback);
+////            mScanning = false;
+//        }
         //mLeDeviceListAdapter.clear();
         startActivity(intent);
     }
@@ -220,42 +340,82 @@ public class DeviceScanActivity extends ListActivity {
         return settings.getString(LAST_MAC_ADDRESS, "");
     }
 
-    private boolean checkLastMacAddress() {
+    private int checkLastMacAddress() {
         int numDevices = mLeDeviceListAdapter.getCount();
         for (int i = 0; i < numDevices; i++) {
             BluetoothDevice device = mLeDeviceListAdapter.getDevice(i);
             if (device.getAddress().equals(lastMacAddress))
             {
-                displayGauges(i);
-                return true;
+                //displayGauges(i);
+                return i;
             }
         }
-        return false;
+        return -1;
     }
 
     private void scanLeDevice(final boolean enable) {
-        Log.i(TAG, "scanLeDevice: " + enable);
+        Log.i(TAG, "scanLeDevice: " + enable + "  mBluetoothAdapter: " + mBluetoothAdapter);
 
-        if (enable && mBluetoothAdapter != null) {
-            // Stops scanning after a pre-defined scan period.
+        if (enable) {
+
 /*            mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    //if (mScanning) {
-                        mScanning = false;
+                    if (Build.VERSION.SDK_INT < 21) {
                         mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                        invalidateOptionsMenu();
-                   // }
+                    } else {
+                        mLeScanner50.stopScan(mScanCallback50);
+
+                    }
                 }
             }, SCAN_PERIOD);*/
 
-            mScanning = true;
-            mBluetoothAdapter.startLeScan(mLeScanCallback);
+            if (!mScanning)
+            {
+                if (Build.VERSION.SDK_INT < 21) {
+                    mBluetoothAdapter.startLeScan(mLeScanCallback);
+                } else {
+                    mLeScanner50.startScan(filters, settings, mScanCallback50);
+                }
+                mScanning = true;
+            }
         } else {
-            mScanning = false;
-            mBluetoothAdapter.stopLeScan(mLeScanCallback);
-            mLeDeviceListAdapter.clear();
+            if (mScanning) {
+                if (Build.VERSION.SDK_INT < 21) {
+                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                } else {
+                    mLeScanner50.stopScan(mScanCallback50);
+                }
+                mScanning = false;
+            }
         }
+
+
+//        if (enable && mBluetoothAdapter != null) {
+//            // Stops scanning after a pre-defined scan period.
+///*            mHandler.postDelayed(new Runnable() {
+//                @Override
+//                public void run() {
+//                    //if (mScanning) {
+//                        mScanning = false;
+//                        mBluetoothAdapter.stopLeScan(mLeScanCallback);
+//                        invalidateOptionsMenu();
+//                   // }
+//                }
+//            }, SCAN_PERIOD);*/
+//
+//            Log.i(TAG, "scanLeDevice: Start scan");
+//            mScanning = true;
+//            mBluetoothAdapter.startLeScan(mLeScanCallback);
+//        } else {
+//            Log.i(TAG, "scanLeDevice: Stop scan");
+//
+//            mScanning = false;
+//            mBluetoothAdapter.stopLeScan(mLeScanCallback);
+//            //mLeDeviceListAdapter.clear();
+//        }
+
+
         invalidateOptionsMenu();
     }
 
@@ -278,7 +438,7 @@ public class DeviceScanActivity extends ListActivity {
         }
 
         public BluetoothDevice getDevice(int position) {
-            return mLeDevices.get(position);
+            return (mLeDevices.size() > position ? mLeDevices.get(position) : null);
         }
 
         public void clear() {
@@ -326,6 +486,9 @@ public class DeviceScanActivity extends ListActivity {
                 viewHolder.deviceName.setText(R.string.unknown_device);
             viewHolder.deviceAddress.setText(device.getAddress());
 
+            int bondState = device.getBondState();
+            int contents = device.describeContents();
+
             return view;
         }
 
@@ -350,7 +513,7 @@ public class DeviceScanActivity extends ListActivity {
             new BluetoothAdapter.LeScanCallback() {
 
         @Override
-        public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
+        public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
             runOnUiThread(new Runnable() {
 
                 @Override
@@ -360,29 +523,133 @@ public class DeviceScanActivity extends ListActivity {
                         String name = device.getName();
 
                         if (name != null) {
-                            Log.i(TAG, "onLeScan device found: " + name);
+                            Log.v(TAG, "onLeScan device found: " + name);
 
                             // only look for Solowheel devices
-                            if (name.equals("EXTREME"))
-                            {
-                                if (checkLastMacAddress()) {
-
-                                    return;
-                                }
+                            if (name.equals("EXTREME")) {
+                                Log.i(TAG, "rssi = " + rssi);
 
                                 boolean found = false;
-                                for (BluetoothDevice dev : mLeDeviceListAdapter.mLeDevices)
-                                {
+                                for (BluetoothDevice dev : mLeDeviceListAdapter.mLeDevices) {
                                     found = true;
                                     break;
                                 }
-                                if (!found)
+                                if (!found) {
+                                    Log.v(TAG, "XTREME found");
                                     mLeDeviceListAdapter.addDevice(device);
+                                }
+
+                                int devNum = checkLastMacAddress();
+                                if (devNum != -1) {
+                                    Log.v(TAG, "Last Address! Launching gauges");
+
+                                    displayGauges(devNum);
+                                    return;
+                                }
                             }
                         }
                     }
                 }
             });
+        }
+    };
+
+/*    private ScanCallback mScanCallback50 = new ScanCallback() {
+        @Override
+        public void onScanResult(int callbackType, ScanResult result) {
+            Log.i("callbackType", String.valueOf(callbackType));
+            Log.i("result", result.toString());
+
+            if (mScanning) {
+                BluetoothDevice btDevice = result.getDevice();
+
+
+                //connectToDevice50(btDevice);
+
+
+                String name = btDevice.getName();
+
+                if (name != null) {
+                    Log.v(TAG, "onLeScan device found: " + name);
+
+                    // only look for Solowheel devices
+                    if (name.equals("EXTREME")) {
+                        // Log.i(TAG, "rssi = " + rssi);
+
+                        boolean found = false;
+                        for (BluetoothDevice dev : mLeDeviceListAdapter.mLeDevices) {
+                            found = true;
+                            break;
+                        }
+                        if (!found) {
+                            Log.v(TAG, "XTREME found");
+                            mLeDeviceListAdapter.addDevice(btDevice);
+                        }
+
+                        int devNum = checkLastMacAddress();
+                        if (devNum != -1) {
+                            Log.v(TAG, "Last Address! Launching gauges");
+
+                            displayGauges(devNum);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void onBatchScanResults(List<ScanResult> results) {
+            for (ScanResult sr : results) {
+                Log.i("ScanResult - Results", sr.toString());
+            }
+        }
+
+        @Override
+        public void onScanFailed(int errorCode) {
+            Log.e("Scan Failed", "Error Code: " + errorCode);
+        }
+    };*/
+
+    public void connectToDevice50(BluetoothDevice device) {
+        if (mGatt == null) {
+            mGatt = device.connectGatt(this, false, gattCallback50);
+            scanLeDevice(false);// will stop after first device detection
+        }
+    }
+
+    private final BluetoothGattCallback gattCallback50 = new BluetoothGattCallback() {
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            Log.i("onConnectionStateChange", "Status: " + status);
+            switch (newState) {
+                case BluetoothProfile.STATE_CONNECTED:
+                    Log.i("gattCallback", "STATE_CONNECTED");
+                    gatt.discoverServices();
+                    break;
+                case BluetoothProfile.STATE_DISCONNECTED:
+                    Log.e("gattCallback", "STATE_DISCONNECTED");
+                    break;
+                default:
+                    Log.e("gattCallback", "STATE_OTHER");
+            }
+
+        }
+
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            List<BluetoothGattService> services = gatt.getServices();
+            Log.i("onServicesDiscovered", services.toString());
+            gatt.readCharacteristic(services.get(1).getCharacteristics().get
+                    (0));
+        }
+
+        @Override
+        public void onCharacteristicRead(BluetoothGatt gatt,
+                                         BluetoothGattCharacteristic
+                                                 characteristic, int status) {
+            Log.i("onCharacteristicRead", characteristic.toString());
+            gatt.disconnect();
         }
     };
 

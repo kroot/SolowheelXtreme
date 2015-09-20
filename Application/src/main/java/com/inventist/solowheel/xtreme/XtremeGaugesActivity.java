@@ -51,7 +51,7 @@ import java.util.Locale;
  * Bluetooth LE API.
  */
 public class XtremeGaugesActivity extends Activity {
-    private final static String TAG = "solowheel"; //.class.getSimpleName();
+    private final static String TAG = "XtremeGauges"; //.class.getSimpleName();
 
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
@@ -176,10 +176,18 @@ public class XtremeGaugesActivity extends Activity {
                             long currentTime = System.currentTimeMillis();
                             long deltaSeconds = (currentTime - mLastMessageReceived) / 1000;
 
-                            if (deltaSeconds >= 1)
+                            if (deltaSeconds >= 2) {
                                 Log.i(TAG, "deltaSeconds: " + deltaSeconds);
 
-                            if (deltaSeconds >= 5) {
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        displayData(0.0, 0.0, 0.0, true);
+                                    }
+                                });
+                            }
+
+                            if (deltaSeconds >= 10) {
                                 mKeepWatchDogTimer = false;
 
                                 runOnUiThread(new Runnable() {
@@ -225,6 +233,9 @@ public class XtremeGaugesActivity extends Activity {
         Log.i(TAG, "Gauges onDestroy");
 
         super.onDestroy();
+
+        mBluetoothLeService.disconnect();
+
         unregisterReceiver(mGattUpdateReceiver);
 
         unbindService(mServiceConnection);
@@ -241,12 +252,16 @@ public class XtremeGaugesActivity extends Activity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        //return super.onCreateOptionsMenu(menu);
+
         getMenuInflater().inflate(R.menu.gatt_services, menu);
         if (mConnected) {
             menu.findItem(R.id.menu_connect).setVisible(false);
-            menu.findItem(R.id.menu_disconnect).setVisible(true);
+//            menu.findItem(R.id.menu_disconnect).setVisible(true);
+            menu.findItem(R.id.menu_disconnect).setVisible(false);
         } else {
-            menu.findItem(R.id.menu_connect).setVisible(true);
+//            menu.findItem(R.id.menu_connect).setVisible(true);
+            menu.findItem(R.id.menu_connect).setVisible(false);
             menu.findItem(R.id.menu_disconnect).setVisible(false);
         }
         return true;
@@ -263,13 +278,19 @@ public class XtremeGaugesActivity extends Activity {
                 mBluetoothLeService.disconnect();
 
                 // if the user hits disconnect, then clear the mac address.
+//                SharedPreferences settings = getSharedPreferences(DeviceScanActivity.SHARED_PREF_NAME, 0);
+//                SharedPreferences.Editor editor = settings.edit();
+//                editor.putString(DeviceScanActivity.LAST_MAC_ADDRESS, "");
+//                editor.commit();
+                return true;
+
+            case android.R.id.home:
+                // if the user hits disconnect, then clear the mac address.
                 SharedPreferences settings = getSharedPreferences(DeviceScanActivity.SHARED_PREF_NAME, 0);
                 SharedPreferences.Editor editor = settings.edit();
                 editor.putString(DeviceScanActivity.LAST_MAC_ADDRESS, "");
                 editor.commit();
-                return true;
 
-            case android.R.id.home:
                // clearMacAddress(mDeviceAddress);
                 onBackPressed();
                 return true;

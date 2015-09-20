@@ -48,7 +48,7 @@ import java.util.Locale;
  * given Bluetooth LE device.
  */
 public class BluetoothLeService extends Service {
-    private final static String TAG = "solowheel"; // BluetoothLeService.class.getSimpleName();
+    private final static String TAG = "XtremeService"; // BluetoothLeService.class.getSimpleName();
 
     private BluetoothManager mBluetoothManager;
     private BluetoothAdapter mBluetoothAdapter;
@@ -95,11 +95,13 @@ public class BluetoothLeService extends Service {
                 intentAction = ACTION_GATT_CONNECTED;
                 mConnectionState = STATE_CONNECTED;
                 broadcastUpdate(intentAction);
+
                 // Attempts to discover services after successful connection.
-                Log.i(TAG, "Attempting to start service discovery:" +
-                        mBluetoothGatt.discoverServices());
+                mBluetoothGatt.discoverServices();
 
                 initGoogleApiClient();
+
+                //gatt.discoverServices();
             }
             else if (mConnectionState == BluetoothProfile.STATE_CONNECTED &&
                     newState == BluetoothProfile.STATE_DISCONNECTED)
@@ -287,12 +289,16 @@ public class BluetoothLeService extends Service {
     }
 
     @Override
-    public IBinder onBind(Intent intent) {
+    public IBinder onBind(Intent intent)
+    {
+        Log.w(TAG, "onBind");
         return mBinder;
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
+        Log.w(TAG, "onUnbind");
+
         // After using a given device, you should make sure that BluetoothGatt.close() is called
         // such that resources are cleaned up properly.  In this particular example, close() is
         // invoked when the UI is disconnected from the Service.
@@ -338,6 +344,8 @@ public class BluetoothLeService extends Service {
      *         callback.
      */
     public boolean connect(final String address) {
+        Log.i(TAG, "connect: state: " + mConnectionState);
+
         if (mBluetoothAdapter == null || address == null) {
             Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.");
             return false;
@@ -376,6 +384,8 @@ public class BluetoothLeService extends Service {
      * callback.
      */
     public void disconnect() {
+        Log.i(TAG, "connect: disconnect: " + mConnectionState);
+
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized");
             return;

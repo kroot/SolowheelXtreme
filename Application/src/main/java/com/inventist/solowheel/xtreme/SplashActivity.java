@@ -31,6 +31,14 @@ public class SplashActivity extends Activity {
 
     public static DeviceScanActivity deviceScanActivity;
 
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.activity_splash);
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -61,24 +69,17 @@ public class SplashActivity extends Activity {
         finish();
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.activity_splash);
-    }
-
-    public final static String EUALA_ACCEPTED_KEY = "eualaAccepted";
+    public final static String EULA_ACCEPTED_KEY = "eulaAccepted";
 
     public void setEualAccepted() {
         SharedPreferences settings = getSharedPreferences(DeviceScanActivity.SHARED_PREF_NAME, 0);
         SharedPreferences.Editor editor = settings.edit();
-        editor.putBoolean(EUALA_ACCEPTED_KEY, true);
+        editor.putBoolean(EULA_ACCEPTED_KEY, true);
         editor.commit();
     }
 
     public Boolean getEualAccepted() {
         SharedPreferences settings = getSharedPreferences(DeviceScanActivity.SHARED_PREF_NAME, 0);
-        return settings.getBoolean(EUALA_ACCEPTED_KEY, false);
+        return settings.getBoolean(EULA_ACCEPTED_KEY, false);
     }
 }
