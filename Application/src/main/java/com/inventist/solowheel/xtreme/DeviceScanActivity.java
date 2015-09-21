@@ -67,6 +67,8 @@ public class DeviceScanActivity extends ListActivity {
     private LeDeviceListAdapter mLeDeviceListAdapter;
     private BluetoothAdapter mBluetoothAdapter;
 
+    private BluetoothAdapter.LeScanCallback mLeScanCallback;
+
     // Android 5.0 or above BLE support only (not backwards compatible)
     private ScanSettings settings;
     private BluetoothLeScanner mLeScanner50;
@@ -136,13 +138,18 @@ public class DeviceScanActivity extends ListActivity {
                                 // Log.i(TAG, "rssi = " + rssi);
 
                                 boolean found = false;
-                                for (BluetoothDevice dev : mLeDeviceListAdapter.mLeDevices) {
-                                    found = true;
+                                for (DeviceContainer dev : mLeDeviceListAdapter.mLeDevices) {
+                                    if (dev.device.getAddress().equals(btDevice.getAddress())) {
+                                        found = true;
+
+                                        dev.rssi = result.getRssi();
+                                        mLeDeviceListAdapter.refresh();
+                                    }
                                     break;
                                 }
                                 if (!found) {
                                     Log.v(TAG, "XTREME found");
-                                    mLeDeviceListAdapter.addDevice(btDevice);
+                                    mLeDeviceListAdapter.addDevice(btDevice, result.getRssi());
                                 }
 
                                 int devNum = checkLastMacAddress();
@@ -169,6 +176,59 @@ public class DeviceScanActivity extends ListActivity {
                     Log.e("Scan Failed", "Error Code: " + errorCode);
                 }
             };
+
+        }
+        else  // prior to Android 5.0
+        {
+            mLeScanCallback =
+                new BluetoothAdapter.LeScanCallback() {
+
+                    @Override
+                    public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
+                        runOnUiThread(new Runnable() {
+
+                            @Override
+                            public void run() {
+
+                                if (device != null && mScanning == true) {
+                                    String name = device.getName();
+
+                                    if (name != null) {
+                                        Log.v(TAG, "onLeScan device found: " + name);
+
+                                        // only look for Solowheel devices
+                                        if (name.equals("EXTREME")) {
+                                            Log.i(TAG, "rssi = " + rssi);
+
+                                            boolean found = false;
+                                            for (DeviceContainer dev : mLeDeviceListAdapter.mLeDevices) {
+                                                if (dev.device.getAddress().equals(device.getAddress())) {
+                                                    found = true;
+
+                                                    dev.rssi = rssi;
+                                                    mLeDeviceListAdapter.refresh();
+                                                }
+                                                break;
+                                            }
+                                            if (!found) {
+                                                Log.v(TAG, "XTREME found");
+                                                mLeDeviceListAdapter.addDevice(device, rssi);
+                                            }
+
+                                            int devNum = checkLastMacAddress();
+                                            if (devNum != -1) {
+                                                Log.v(TAG, "Last Address! Launching gauges");
+
+                                                displayGauges(devNum);
+                                                return;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                };
 
         }
     }
@@ -377,31 +437,53 @@ public class DeviceScanActivity extends ListActivity {
         invalidateOptionsMenu();
     }
 
+    class DeviceContainer {
+        int rssi;
+        BluetoothDevice device;
+
+        DeviceContainer(BluetoothDevice device, int rssi) {
+            this.rssi = rssi;
+            this.device = device;
+        }
+    }
+
+    static class ViewHolder {
+        TextView deviceName;
+        TextView deviceAddress;
+        TextView deviceRssi;
+    }
+
     // Adapter for holding devices found through scanning.
     private class LeDeviceListAdapter extends BaseAdapter {
-        private ArrayList<BluetoothDevice> mLeDevices;
+
+
+        private ArrayList<DeviceContainer> mLeDevices;
         private LayoutInflater mInflator;
 
         public LeDeviceListAdapter() {
             super();
-            mLeDevices = new ArrayList<BluetoothDevice>();
+            mLeDevices = new ArrayList<DeviceContainer>();
             mInflator = DeviceScanActivity.this.getLayoutInflater();
         }
 
-        public void addDevice(BluetoothDevice device) {
+        public void addDevice(BluetoothDevice device, int rssi) {
             if(!mLeDevices.contains(device)) {
-                mLeDevices.add(device);
+                mLeDevices.add(new DeviceContainer(device, rssi));
                 notifyDataSetChanged();
             }
         }
 
         public BluetoothDevice getDevice(int position) {
-            return (mLeDevices.size() > position ? mLeDevices.get(position) : null);
+            return (mLeDevices.size() > position ? mLeDevices.get(position).device : null);
         }
 
         public void clear() {
             mLeDevices.clear();
-            //notifyDataSetChanged();
+            notifyDataSetChanged();
+        }
+
+        public void refresh() {
+            notifyDataSetChanged();
         }
 
         @Override
@@ -427,13 +509,14 @@ public class DeviceScanActivity extends ListActivity {
                 view = mInflator.inflate(R.layout.listitem_device, null);
                 viewHolder = new ViewHolder();
                 viewHolder.deviceAddress = (TextView) view.findViewById(R.id.device_address);
+                viewHolder.deviceRssi = (TextView) view.findViewById(R.id.device_rssi);
                 viewHolder.deviceName = (TextView) view.findViewById(R.id.device_name);
                 view.setTag(viewHolder);
             } else {
                 viewHolder = (ViewHolder) view.getTag();
             }
 
-            BluetoothDevice device = mLeDevices.get(i);
+            BluetoothDevice device = mLeDevices.get(i).device;
             final String deviceName = device.getName();
             if (deviceName != null && deviceName.length() > 0)
                 if (deviceName.equals("EXTREME"))
@@ -443,6 +526,7 @@ public class DeviceScanActivity extends ListActivity {
             else
                 viewHolder.deviceName.setText(R.string.unknown_device);
             viewHolder.deviceAddress.setText(device.getAddress());
+            viewHolder.deviceRssi.setText(mLeDevices.get(i).rssi + " dB");
 
             int bondState = device.getBondState();
             int contents = device.describeContents();
@@ -466,54 +550,4 @@ public class DeviceScanActivity extends ListActivity {
 //        }
     }
 
-    // Device scan callback.
-    private BluetoothAdapter.LeScanCallback mLeScanCallback =
-            new BluetoothAdapter.LeScanCallback() {
-
-        @Override
-        public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
-            runOnUiThread(new Runnable() {
-
-                @Override
-                public void run() {
-
-                    if (device != null && mScanning == true) {
-                        String name = device.getName();
-
-                        if (name != null) {
-                            Log.v(TAG, "onLeScan device found: " + name);
-
-                            // only look for Solowheel devices
-                            if (name.equals("EXTREME")) {
-                                Log.i(TAG, "rssi = " + rssi);
-
-                                boolean found = false;
-                                for (BluetoothDevice dev : mLeDeviceListAdapter.mLeDevices) {
-                                    found = true;
-                                    break;
-                                }
-                                if (!found) {
-                                    Log.v(TAG, "XTREME found");
-                                    mLeDeviceListAdapter.addDevice(device);
-                                }
-
-                                int devNum = checkLastMacAddress();
-                                if (devNum != -1) {
-                                    Log.v(TAG, "Last Address! Launching gauges");
-
-                                    displayGauges(devNum);
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-    };
-
-    static class ViewHolder {
-        TextView deviceName;
-        TextView deviceAddress;
-    }
 }
