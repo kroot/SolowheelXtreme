@@ -283,16 +283,10 @@ public class DeviceScanActivity extends ListActivity {
         Log.i(TAG, "DeviceScan onPause");
 
         super.onPause();
-//        scanLeDevice(false);
     }
 
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
-//        if (mScanning) {
-//            scanLeDevice(false);
-////            mBluetoothAdapter.stopLeScan(mLeScanCallback);
-////            mScanning = false;
-//        }
         displayGauges(position);
     }
 
@@ -301,13 +295,6 @@ public class DeviceScanActivity extends ListActivity {
         if (device == null) return;
 
         scanLeDevice(false);
-
-//        if (mScanning) {
-//            scanLeDevice(false);
-////            mBluetoothAdapter.stopLeScan(mLeScanCallback);
-////            mScanning = false;
-//        }
-        //mLeDeviceListAdapter.clear();
 
         final String newMacAddress = device.getAddress();
         final Intent intent = new Intent(this, XtremeGaugesActivity.class);
@@ -319,12 +306,6 @@ public class DeviceScanActivity extends ListActivity {
             saveMacAddress(lastMacAddress);
         }
 
-//        if (mScanning) {
-//            scanLeDevice(false);
-////            mBluetoothAdapter.stopLeScan(mLeScanCallback);
-////            mScanning = false;
-//        }
-        //mLeDeviceListAdapter.clear();
         startActivity(intent);
     }
 
@@ -346,7 +327,6 @@ public class DeviceScanActivity extends ListActivity {
             BluetoothDevice device = mLeDeviceListAdapter.getDevice(i);
             if (device.getAddress().equals(lastMacAddress))
             {
-                //displayGauges(i);
                 return i;
             }
         }
@@ -372,6 +352,8 @@ public class DeviceScanActivity extends ListActivity {
 
             if (!mScanning)
             {
+                Log.i(TAG, "scanLeDevice: Start scan");
+
                 if (Build.VERSION.SDK_INT < 21) {
                     mBluetoothAdapter.startLeScan(mLeScanCallback);
                 } else {
@@ -381,6 +363,8 @@ public class DeviceScanActivity extends ListActivity {
             }
         } else {
             if (mScanning) {
+                Log.i(TAG, "scanLeDevice: Stop scan");
+
                 if (Build.VERSION.SDK_INT < 21) {
                     mBluetoothAdapter.stopLeScan(mLeScanCallback);
                 } else {
@@ -389,32 +373,6 @@ public class DeviceScanActivity extends ListActivity {
                 mScanning = false;
             }
         }
-
-
-//        if (enable && mBluetoothAdapter != null) {
-//            // Stops scanning after a pre-defined scan period.
-///*            mHandler.postDelayed(new Runnable() {
-//                @Override
-//                public void run() {
-//                    //if (mScanning) {
-//                        mScanning = false;
-//                        mBluetoothAdapter.stopLeScan(mLeScanCallback);
-//                        invalidateOptionsMenu();
-//                   // }
-//                }
-//            }, SCAN_PERIOD);*/
-//
-//            Log.i(TAG, "scanLeDevice: Start scan");
-//            mScanning = true;
-//            mBluetoothAdapter.startLeScan(mLeScanCallback);
-//        } else {
-//            Log.i(TAG, "scanLeDevice: Stop scan");
-//
-//            mScanning = false;
-//            mBluetoothAdapter.stopLeScan(mLeScanCallback);
-//            //mLeDeviceListAdapter.clear();
-//        }
-
 
         invalidateOptionsMenu();
     }
@@ -551,105 +509,6 @@ public class DeviceScanActivity extends ListActivity {
                     }
                 }
             });
-        }
-    };
-
-/*    private ScanCallback mScanCallback50 = new ScanCallback() {
-        @Override
-        public void onScanResult(int callbackType, ScanResult result) {
-            Log.i("callbackType", String.valueOf(callbackType));
-            Log.i("result", result.toString());
-
-            if (mScanning) {
-                BluetoothDevice btDevice = result.getDevice();
-
-
-                //connectToDevice50(btDevice);
-
-
-                String name = btDevice.getName();
-
-                if (name != null) {
-                    Log.v(TAG, "onLeScan device found: " + name);
-
-                    // only look for Solowheel devices
-                    if (name.equals("EXTREME")) {
-                        // Log.i(TAG, "rssi = " + rssi);
-
-                        boolean found = false;
-                        for (BluetoothDevice dev : mLeDeviceListAdapter.mLeDevices) {
-                            found = true;
-                            break;
-                        }
-                        if (!found) {
-                            Log.v(TAG, "XTREME found");
-                            mLeDeviceListAdapter.addDevice(btDevice);
-                        }
-
-                        int devNum = checkLastMacAddress();
-                        if (devNum != -1) {
-                            Log.v(TAG, "Last Address! Launching gauges");
-
-                            displayGauges(devNum);
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-
-        @Override
-        public void onBatchScanResults(List<ScanResult> results) {
-            for (ScanResult sr : results) {
-                Log.i("ScanResult - Results", sr.toString());
-            }
-        }
-
-        @Override
-        public void onScanFailed(int errorCode) {
-            Log.e("Scan Failed", "Error Code: " + errorCode);
-        }
-    };*/
-
-    public void connectToDevice50(BluetoothDevice device) {
-        if (mGatt == null) {
-            mGatt = device.connectGatt(this, false, gattCallback50);
-            scanLeDevice(false);// will stop after first device detection
-        }
-    }
-
-    private final BluetoothGattCallback gattCallback50 = new BluetoothGattCallback() {
-        @Override
-        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-            Log.i("onConnectionStateChange", "Status: " + status);
-            switch (newState) {
-                case BluetoothProfile.STATE_CONNECTED:
-                    Log.i("gattCallback", "STATE_CONNECTED");
-                    gatt.discoverServices();
-                    break;
-                case BluetoothProfile.STATE_DISCONNECTED:
-                    Log.e("gattCallback", "STATE_DISCONNECTED");
-                    break;
-                default:
-                    Log.e("gattCallback", "STATE_OTHER");
-            }
-
-        }
-
-        @Override
-        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-            List<BluetoothGattService> services = gatt.getServices();
-            Log.i("onServicesDiscovered", services.toString());
-            gatt.readCharacteristic(services.get(1).getCharacteristics().get
-                    (0));
-        }
-
-        @Override
-        public void onCharacteristicRead(BluetoothGatt gatt,
-                                         BluetoothGattCharacteristic
-                                                 characteristic, int status) {
-            Log.i("onCharacteristicRead", characteristic.toString());
-            gatt.disconnect();
         }
     };
 
