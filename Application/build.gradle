@@ -36,7 +36,7 @@ android {
         config {
             keyAlias 'rel1'
             keyPassword 'G6JZVFYyykGKDVzBOs3u'
-            storeFile file('C:/Temp/SolowheelXtreme/keystore/keys')
+            storeFile file('src/${dir}/keystore/keys')
             storePassword 'LnR301q4M2epbrrgOaTY'
         }
     }

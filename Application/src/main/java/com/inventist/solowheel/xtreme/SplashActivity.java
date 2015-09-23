@@ -24,8 +24,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 
-import com.inventist.solowheel.xtreme.R;
-
 
 public class SplashActivity extends Activity {
 

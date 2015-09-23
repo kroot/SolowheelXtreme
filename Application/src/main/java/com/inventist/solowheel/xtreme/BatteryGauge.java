@@ -36,8 +36,6 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 
-import com.inventist.solowheel.xtreme.R;
-
 public class BatteryGauge extends View {
 	private static final String TAG = "solowheel";
 
@@ -335,7 +333,7 @@ public class BatteryGauge extends View {
             green = (int)(i * scale);
             blue = 0;
 
-            Log.d(TAG, String.format("i=%d rga=[%2x][%2x]%2x", i, red, green, alpha));
+//            Log.d(TAG, String.format("i=%d rga=[%2x][%2x]%2x", i, red, green, alpha));
 
             arcPaintBatteryFill.setColor(Color.argb(alpha, red, green, blue));
             canvas.drawPath(ptsSegments, arcPaintBatteryFill);

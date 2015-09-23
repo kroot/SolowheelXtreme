@@ -29,14 +29,11 @@ import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.text.format.Time;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
-
-import com.inventist.solowheel.xtreme.R;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
