@@ -141,9 +141,6 @@ public class XtremeGaugesActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gauges);
 
-        findViewById(R.id.green_arrow_up).setVisibility(View.GONE);
-        findViewById(R.id.red_arrow_down).setVisibility(View.GONE);
-
         final Intent intent = getIntent();
         mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
         mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
@@ -310,9 +307,6 @@ public class XtremeGaugesActivity extends Activity {
             BatteryGauge f = (BatteryGauge) findViewById(R.id.reading1);
             f.setFullPercent(chargePercent.intValue());
 
-            TextView tv = (TextView) findViewById(R.id.volts);
-            tv.setText(new DecimalFormat("##.##").format(chargeVolts) + "v");
-
             Locale loc = this.getResources().getConfiguration().locale;
             boolean useMph = (loc.getISO3Country().equalsIgnoreCase("usa") || loc.getISO3Country().equalsIgnoreCase("mmr"));
 
@@ -323,17 +317,12 @@ public class XtremeGaugesActivity extends Activity {
             if (useMph) {
                 tvSpeed.setText(String.format("%.1f", speed));
                 tvSpeedUnits.setText("MPH");
-//                formattedSpeed = String.format("%.1f", speed) + " MPH";
             }
             else {
                 tvSpeed.setText(String.format("%.1f", speed * 1.6));
                 tvSpeedUnits.setText("KPH");
-//                formattedSpeed = String.format("%.1f", speed * 1.6) + " KPH";
             }
 
-            findViewById(R.id.green_arrow_up).setVisibility(chargeVolts > previousVoltage ? View.VISIBLE : View.GONE);
-            findViewById(R.id.red_arrow_down).setVisibility(chargeVolts < previousVoltage ? View.VISIBLE : View.GONE);
-            findViewById(R.id.noArrow).setVisibility(chargeVolts.equals(previousVoltage) ? View.VISIBLE : View.GONE);
             previousVoltage = chargeVolts;
         }
     }
