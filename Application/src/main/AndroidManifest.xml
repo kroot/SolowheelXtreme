@@ -16,8 +16,14 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.inventist.solowheel.xtreme"
-    android:versionCode="2"
-    android:versionName="1.1" >
+    android:versionCode="3"
+    android:versionName="1.2" >
+
+    <!--
+        1.0 (1) - Stable build with Android Wear support.
+        1.1 (2) - Android 5 sdk direct calls. RSSI indicator added to search.
+        1.2 (3) - Removed voltage text readout and up/down arrows for voltage changes.
+    -->
 
     <!-- Min/target SDK versions (<uses-sdk>) managed by build.gradle -->
 
