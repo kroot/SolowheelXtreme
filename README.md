@@ -18,9 +18,6 @@ The Activities communicate with the Service, which in turn interacts with the [B
 [1]:http://developer.android.com/reference/android/app/Service.html
 [2]:https://developer.android.com/reference/android/bluetooth/BluetoothGatt.html
 
-The Xtreme uses the Texas Instruments **CC254X** Bluetooth LE chipset.  
-[TI Bluetooth low energy software stack and tools](http://www.ti.com/tool/ble-stack)
-
 [Bluetooth LE on Wikipedia](https://en.wikipedia.org/wiki/Bluetooth_low_energy)
 
 Prerequisites
