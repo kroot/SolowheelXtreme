@@ -34,6 +34,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -128,8 +129,20 @@ public class XtremeGaugesActivity extends Activity {
                 Double chargeVolts = intent.getDoubleExtra(BluetoothLeService.EXTRA_DATA_CHARGE_VOLTS, 0);
                 Boolean direction = intent.getBooleanExtra(BluetoothLeService.EXTRA_DATA_DIRECTION, true);
                 Double speed = intent.getDoubleExtra(BluetoothLeService.EXTRA_DATA_SPEED, 0);
+                Boolean badFirmware = intent.getBooleanExtra(BluetoothLeService.EXTRA_DATA_BAD_FIRMWARE, false);
 
-                displayData(chargePercent, chargeVolts, speed, direction);
+                if (badFirmware)
+                {
+                    Toast.makeText(getApplicationContext(), R.string.bad_firmware, Toast.LENGTH_LONG).show();
+                    SharedPreferences settings = getSharedPreferences(DeviceScanActivity.SHARED_PREF_NAME, 0);
+                    SharedPreferences.Editor editor = settings.edit();
+                    editor.putString(DeviceScanActivity.LAST_MAC_ADDRESS, "");
+                    editor.commit();
+
+                    finish();
+                }
+                else
+                    displayData(chargePercent, chargeVolts, speed, direction);
             }
         }
     };

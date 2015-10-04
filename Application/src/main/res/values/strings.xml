@@ -26,4 +26,5 @@
     <string name="action_settings">Settings</string>
     <string name="splash_text1">Riding a Solowheel should always be done carefully, with your full attention, and with proper safety equipment.</string>
     <string name="splash_test2">The use of any mobile phone or device that can cause distractions while riding is not recommended.</string>
+    <string name="bad_firmware">Unsupported firmware.\nPlease contact your Solowheel reseller for a Soloware upgrade.</string>
 </resources>
