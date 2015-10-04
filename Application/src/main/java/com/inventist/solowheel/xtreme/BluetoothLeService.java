@@ -57,7 +57,6 @@ public class BluetoothLeService extends Service {
     private int mConnectionState = STATE_DISCONNECTED;
     private long mLastWatchUpdateTime = 0;
     private GoogleApiClient mGoogleApiClient;
-    private static boolean badFirmware = false;
 
     private static final int STATE_DISCONNECTED = 0;
     private static final int STATE_CONNECTING = 1;
@@ -83,6 +82,12 @@ public class BluetoothLeService extends Service {
             "com.inventist.solowheel.xtreme.EXTRA_DATA_DIRECTION";
     public final static String EXTRA_DATA_BAD_FIRMWARE =
             "com.inventist.solowheel.xtreme.EXTRA_DATA_BAD_FIRMWARE";
+
+    public enum connectionErrors
+    {
+        noErrors,
+        badFirmware
+    }
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
@@ -169,29 +174,17 @@ public class BluetoothLeService extends Service {
                 switch (swValues.length)
                 {
                 case 3:
-
                     // This is a guard for an unsupported firmware version that doesn't send correct data.
-                    // Trigger if we get this data twice in a row.
-                    if (swValues[0] == "00555" && swValues[1] == "00000" && swValues[2] == "00000")
+                    // The logic assumption here is the correct firmware will always send a non-zero battery voltage.
+                    if (swValues[1] == "00000")
                     {
-                        if(badFirmware) // fire the trigger
-                        {
-                            intent.putExtra(EXTRA_DATA_CHARGE_PERCENT, new Double(0));
-                            intent.putExtra(EXTRA_DATA_CHARGE_VOLTS, new Double(0));
-                            intent.putExtra(EXTRA_DATA_DIRECTION, true);
-                            intent.putExtra(EXTRA_DATA_BAD_FIRMWARE, true);
+                        broadcastXtremeData(intent, connectionErrors.badFirmware, "", 0.0, 0.0, 0.0);
 
-                            sendBroadcast(intent);
-
-                            // Wear support
-                            SendWearMessage(0.0, 0.0);
-                        }
-                        else
-                            badFirmware = true; // arm the trigger.
-
-                        return; // do not fall through here
+                        disconnectGoogleClient();
+                        disconnect();
+                        close();
+                        return; // do not fall through
                     }
-                    badFirmware = false;
 
                     // If the last field doesn't look like the direction, ignore the message
                     String direction = swValues[2].trim();
@@ -240,7 +233,7 @@ public class BluetoothLeService extends Service {
                                 Double full = 58.0;
 
                                 // Mine vibrated at 46.8v when I ran it down completely.
-                                Double empty = 47.0d;
+                                Double empty = 47.0;
 
                                 Double fullRange = full - empty;
                                 batteryDouble = Double.parseDouble(battery);
@@ -257,21 +250,27 @@ public class BluetoothLeService extends Service {
                             catch(Exception ex) {}
                         }
 
-                        intent.putExtra(EXTRA_DATA_CHARGE_PERCENT, new Double(percent));
-                        intent.putExtra(EXTRA_DATA_CHARGE_VOLTS, new Double(batteryDouble));
-                        intent.putExtra(EXTRA_DATA_DIRECTION, new Boolean(direction.equals("00001") ? true : false));
-                        intent.putExtra(EXTRA_DATA_SPEED, new Double(speedMPH));
-                        intent.putExtra(EXTRA_DATA_BAD_FIRMWARE, false);
-
-                        sendBroadcast(intent);
-
-                        // Wear support
-                        SendWearMessage(speedMPH, percent);
+                        broadcastXtremeData(intent, connectionErrors.noErrors, direction, speedMPH, percent, batteryDouble);
                         break;
                     }
                 }
             }
         }
+    }
+
+    private void broadcastXtremeData(Intent intent, connectionErrors error,
+                                     String direction, Double speedMPH, Double percent, Double batteryDouble) {
+
+        intent.putExtra(EXTRA_DATA_CHARGE_PERCENT, new Double(percent));
+        intent.putExtra(EXTRA_DATA_CHARGE_VOLTS, new Double(batteryDouble));
+        intent.putExtra(EXTRA_DATA_DIRECTION, new Boolean(direction.equals("00001") ? true : false));
+        intent.putExtra(EXTRA_DATA_SPEED, new Double(speedMPH));
+        intent.putExtra(EXTRA_DATA_BAD_FIRMWARE, error == connectionErrors.badFirmware);
+
+        sendBroadcast(intent);
+
+        // Wear support
+        SendWearMessage(speedMPH, percent);
     }
 
     private void SendWearMessage(Double speedMPH, Double percent) {

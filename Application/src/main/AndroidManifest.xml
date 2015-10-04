@@ -16,14 +16,15 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.inventist.solowheel.xtreme"
-    android:versionCode="4"
-    android:versionName="1.3" >
+    android:versionCode="5"
+    android:versionName="1.4" >
 
     <!--
         1.0 (1) - Stable build with Android Wear support.
         1.1 (2) - Android 5 sdk direct calls. RSSI indicator added to search.
         1.2 (3) - Removed voltage text readout and up/down arrows for voltage changes.
         1.3 (4) - Added guard for Soloware version that's not working correctly.
+        1.4 (5) - Minor changes to Soloware version checking.
     -->
 
     <!-- Min/target SDK versions (<uses-sdk>) managed by build.gradle -->
