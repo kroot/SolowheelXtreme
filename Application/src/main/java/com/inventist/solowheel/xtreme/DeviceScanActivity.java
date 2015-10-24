@@ -36,6 +36,7 @@ import android.database.DataSetObserver;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -124,24 +125,25 @@ public class DeviceScanActivity extends ListActivity {
                         //connectToDevice50(btDevice);
 
 
-                        String name = btDevice.getName();
+                        String deviceName = btDevice.getName();
+                        String deviceAddress = btDevice.getAddress();
 
-                        if (name != null) {
-                            Log.v(TAG, "onLeScan device found: " + name);
+                        if (!TextUtils.isEmpty(deviceName) && !TextUtils.isEmpty(deviceAddress)) {
+                            Log.v(TAG, "onLeScan device found: " + deviceName);
 
                             // only look for Solowheel devices
-                            if (name.equals("EXTREME")) {
+                            if (deviceName.equals("EXTREME")) {
                                 // Log.i(TAG, "rssi = " + rssi);
 
                                 boolean found = false;
-                                for (DeviceContainer dev : mLeDeviceListAdapter.mLeDevices) {
-                                    if (dev.device.getAddress().equals(btDevice.getAddress())) {
+                                for (DeviceContainer listDevice : mLeDeviceListAdapter.mLeDevices) {
+                                    if (listDevice.device.getAddress().equals(deviceAddress)) {
                                         found = true;
 
-                                        dev.rssi = result.getRssi();
+                                        listDevice.rssi = result.getRssi();
                                         mLeDeviceListAdapter.refresh();
+                                        break;
                                     }
-                                    break;
                                 }
                                 if (!found) {
                                     Log.v(TAG, "XTREME found");
