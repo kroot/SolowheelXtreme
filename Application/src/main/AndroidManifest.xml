@@ -16,8 +16,8 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.inventist.solowheel.xtreme"
-    android:versionCode="7"
-    android:versionName="1.6" >
+    android:versionCode="8"
+    android:versionName="1.7" >
 
     <!--
         1.0 (1) - Stable build with Android Wear support.
@@ -27,6 +27,7 @@
         1.4 (5) - Minor changes to Soloware version checking.
         1.5 (6) - Refreshed build prior to public go-live.
         1.6 (7) - Bug fix when scanning multiple Xtremes.
+        1.7 (8) - Bluetooth scanning improvements with multiple Xtremes.
     -->
 
     <!-- Min/target SDK versions (<uses-sdk>) managed by build.gradle -->

@@ -410,7 +410,7 @@ public class BluetoothLeService extends Service {
      * callback.
      */
     public void disconnect() {
-        Log.i(TAG, "connect: disconnect: " + mConnectionState);
+        Log.i(TAG, "disconnect: " + mConnectionState);
 
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized");
@@ -424,6 +424,8 @@ public class BluetoothLeService extends Service {
      * released properly.
      */
     public void close() {
+        Log.i(TAG, "close");
+
         if (mBluetoothGatt == null) {
             return;
         }
@@ -433,6 +435,8 @@ public class BluetoothLeService extends Service {
 
     private void disconnectGoogleClient()
     {
+        Log.i(TAG, "disconnectGoogleClient");
+
         if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
             final String message = "0,0, ";
             NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();

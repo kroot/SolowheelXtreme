@@ -124,41 +124,7 @@ public class DeviceScanActivity extends ListActivity {
 
                         //connectToDevice50(btDevice);
 
-
-                        String deviceName = btDevice.getName();
-                        String deviceAddress = btDevice.getAddress();
-
-                        if (!TextUtils.isEmpty(deviceName) && !TextUtils.isEmpty(deviceAddress)) {
-                            Log.v(TAG, "onLeScan device found: " + deviceName);
-
-                            // only look for Solowheel devices
-                            if (deviceName.equals("EXTREME")) {
-                                // Log.i(TAG, "rssi = " + rssi);
-
-                                boolean found = false;
-                                for (DeviceContainer listDevice : mLeDeviceListAdapter.mLeDevices) {
-                                    if (listDevice.device.getAddress().equals(deviceAddress)) {
-                                        found = true;
-
-                                        listDevice.rssi = result.getRssi();
-                                        mLeDeviceListAdapter.refresh();
-                                        break;
-                                    }
-                                }
-                                if (!found) {
-                                    Log.v(TAG, "XTREME found");
-                                    mLeDeviceListAdapter.addDevice(btDevice, result.getRssi());
-                                }
-
-                                int devNum = checkLastMacAddress();
-                                if (devNum != -1) {
-                                    Log.v(TAG, "Last Address! Launching gauges");
-
-                                    displayGauges(devNum);
-                                    return;
-                                }
-                            }
-                        }
+                        addDeviceToList(btDevice, result.getRssi());
                     }
                 }
 
@@ -182,52 +148,55 @@ public class DeviceScanActivity extends ListActivity {
                 new BluetoothAdapter.LeScanCallback() {
 
                     @Override
-                    public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
+                    public void onLeScan(final BluetoothDevice btDevice, final int rssi, byte[] scanRecord) {
                         runOnUiThread(new Runnable() {
 
                             @Override
                             public void run() {
 
-                                if (device != null && mScanning == true) {
-                                    String name = device.getName();
-
-                                    if (name != null) {
-                                        Log.v(TAG, "onLeScan device found: " + name);
-
-                                        // only look for Solowheel devices
-                                        if (name.equals("EXTREME")) {
-                                            Log.i(TAG, "rssi = " + rssi);
-
-                                            boolean found = false;
-                                            for (DeviceContainer dev : mLeDeviceListAdapter.mLeDevices) {
-                                                if (dev.device.getAddress().equals(device.getAddress())) {
-                                                    found = true;
-
-                                                    dev.rssi = rssi;
-                                                    mLeDeviceListAdapter.refresh();
-                                                }
-                                                break;
-                                            }
-                                            if (!found) {
-                                                Log.v(TAG, "XTREME found");
-                                                mLeDeviceListAdapter.addDevice(device, rssi);
-                                            }
-
-                                            int devNum = checkLastMacAddress();
-                                            if (devNum != -1) {
-                                                Log.v(TAG, "Last Address! Launching gauges");
-
-                                                displayGauges(devNum);
-                                                return;
-                                            }
-                                        }
-                                    }
-                                }
+                                addDeviceToList(btDevice, rssi);
                             }
                         });
                     }
                 };
 
+        }
+    }
+
+    private void addDeviceToList(BluetoothDevice btDevice, int rssi) {
+        final String deviceName = btDevice.getName();
+        final String deviceAddress = btDevice.getAddress();
+
+        if (!TextUtils.isEmpty(deviceName) && !TextUtils.isEmpty(deviceAddress)) {
+            Log.v(TAG, "onLeScan device found: " + deviceName);
+
+            // only look for Solowheel devices
+            if (deviceName.equals("EXTREME")) {
+                // Log.i(TAG, "rssi = " + rssi);
+
+                boolean found = false;
+                for (DeviceContainer listDevice : mLeDeviceListAdapter.mLeDevices) {
+                    if (deviceAddress.equals(listDevice.device.getAddress())) {
+                        found = true;
+
+                        listDevice.rssi = rssi;
+                        mLeDeviceListAdapter.refresh();
+                    }
+                }
+                if (!found) {
+                    Log.v(TAG, "XTREME found");
+                    mLeDeviceListAdapter.addDevice(btDevice, rssi);
+                    mLeDeviceListAdapter.refresh();
+                }
+
+                int devNum = checkLastMacAddress();
+                if (devNum != -1) {
+                    Log.v(TAG, "Last Address! Launching gauges");
+
+                    displayGauges(devNum);
+                    return;
+                }
+            }
         }
     }
 
