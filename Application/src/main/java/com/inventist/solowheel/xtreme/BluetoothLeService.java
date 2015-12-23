@@ -108,8 +108,6 @@ public class BluetoothLeService extends Service {
                 mBluetoothGatt.discoverServices();
 
                 initGoogleApiClient();
-
-                //gatt.discoverServices();
             }
             else if (mConnectionState == BluetoothProfile.STATE_CONNECTED &&
                     newState == BluetoothProfile.STATE_DISCONNECTED)

@@ -322,8 +322,6 @@ public class BatteryGauge extends View {
 
         for(int i=numSegments; i >= 0; i--)
         {
-//            canvas.rotate(-segmentAngle, centerX, centerY);
-
             if(i > fullValue)
                 alpha = 0x10;
             else
@@ -352,7 +350,6 @@ public class BatteryGauge extends View {
         Integer triangleHeight = (int)dpToPixels(20);
         Integer triangleHeight2 = (int)(triangleHeight / 2);
 
-//		float arrowAng = 360 - ((segmentAngle * fullValue) + (segmentAngle/2));
 		float arrowAng = 360 - (segmentAngle * fullValue);
 
         // draw triangle marker

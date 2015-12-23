@@ -54,7 +54,6 @@ public class XtremeGaugesActivity extends Activity {
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
 
-   // private TextView mConnectionState;
     private String mDeviceName;
     private String mDeviceAddress;
     private BluetoothLeService mBluetoothLeService;
@@ -264,10 +263,8 @@ public class XtremeGaugesActivity extends Activity {
         getMenuInflater().inflate(R.menu.gatt_services, menu);
         if (mConnected) {
             menu.findItem(R.id.menu_connect).setVisible(false);
-//            menu.findItem(R.id.menu_disconnect).setVisible(true);
             menu.findItem(R.id.menu_disconnect).setVisible(false);
         } else {
-//            menu.findItem(R.id.menu_connect).setVisible(true);
             menu.findItem(R.id.menu_connect).setVisible(false);
             menu.findItem(R.id.menu_disconnect).setVisible(false);
         }

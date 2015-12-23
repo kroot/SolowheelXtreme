@@ -16,8 +16,8 @@
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.inventist.solowheel.xtreme"
-    android:versionCode="8"
-    android:versionName="1.7" >
+    android:versionCode="9"
+    android:versionName="1.8" >
 
     <!--
         1.0 (1) - Stable build with Android Wear support.
@@ -28,6 +28,7 @@
         1.5 (6) - Refreshed build prior to public go-live.
         1.6 (7) - Bug fix when scanning multiple Xtremes.
         1.7 (8) - Bluetooth scanning improvements with multiple Xtremes.
+        1.8 (9) - Dropped the minSDK from API 19 to API 18 - 4.3.x - Jelly Bean
     -->
 
     <!-- Min/target SDK versions (<uses-sdk>) managed by build.gradle -->

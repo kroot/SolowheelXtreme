@@ -279,7 +279,6 @@ public class DeviceScanActivity extends ListActivity {
                 super.onChanged();
             }
         });
-//        scanLeDevice(true);
     }
 
     @Override
@@ -365,18 +364,6 @@ public class DeviceScanActivity extends ListActivity {
 
         if (enable) {
 
-/*            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    if (Build.VERSION.SDK_INT < 21) {
-                        mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                    } else {
-                        mLeScanner50.stopScan(mScanCallback50);
-
-                    }
-                }
-            }, SCAN_PERIOD);*/
-
             if (!mScanning)
             {
                 Log.i(TAG, "scanLeDevice: Start scan");
@@ -422,7 +409,6 @@ public class DeviceScanActivity extends ListActivity {
 
     // Adapter for holding devices found through scanning.
     private class LeDeviceListAdapter extends BaseAdapter {
-
 
         private ArrayList<DeviceContainer> mLeDevices;
         private LayoutInflater mInflator;
